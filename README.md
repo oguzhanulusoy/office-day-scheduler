@@ -30,7 +30,9 @@ ods.expires.in = 60000
 refresh.token.expires.in = 604800
 
 ```
+Data model is available on docs.
 
+```
 * Note: Make sure that the port number defined in the "package.json" file in the React project, is the same as the port number in "application.properties"
 
 ```
