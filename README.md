@@ -48,7 +48,7 @@ refresh.token.expires.in = 604800
 npm install mui-datatables --save --legacy-peer-deps
 
 ```
-![image1](/images/image1.jpg)
+![image1](/docs/image1.jpg)
 
 ## Scenarios
 * Role -> User is able to create, read, update and delete the data both on the server side and on the client side.
