@@ -1,20 +1,22 @@
 class RoleService {
-  
-    addRole(serviceCaller, requestBody,callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/role", undefined, headers, requestBody, callback, errorCallBack)
+    async addRole(serviceCaller, requestBody) {
+        let headers = { 'Content-Type': 'application/json'};
+        return await serviceCaller.post("/role", undefined, headers, requestBody)
     }
-    getRoles(serviceCaller, queryParams, callback, errorCallBack){
-        serviceCaller.get("/role", queryParams, undefined,  callback, errorCallBack)
+
+    async getRoles(serviceCaller, queryParams) {
+        return await serviceCaller.get("/role", queryParams, undefined)
     }
-    updateRole(serviceCaller, requestBody, callback, errorCallBack){
-        let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/role", undefined, headers, requestBody, callback, errorCallBack)
+
+    async updateRole(serviceCaller, requestBody) {
+        let headers = { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/role", undefined, headers, requestBody)
     }
-    deleteRole(serviceCaller, requestBody, callback, errorCallBack){
+
+    async deleteRole(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/role", undefined, headers, requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/role", undefined, headers, requestBody)
+    }
 }
 
 export default new RoleService();

@@ -1,3 +1,5 @@
+import profile from './profile';
+import myschedule from './myschedule';
 import role from './role';
 import department from './department';
 import out_of_office_day from './out-of-office-day';
@@ -8,7 +10,7 @@ import calendar from './calendar';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-    items: [role, department, out_of_office_day, zone, user, schedule, calendar]
+    items: [profile, myschedule, role, department, out_of_office_day, zone, user, schedule, calendar]
 };
 
 export default menuItems;

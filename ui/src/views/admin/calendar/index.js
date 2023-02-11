@@ -4,7 +4,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useState, useEffect } from "react";
 import CalendarService from 'services/calendar/CalendarService';
 import ServiceCaller from 'services/ServiceCaller';
+import JWTUtil from 'utils/jwtUtil';
+import { useNavigate } from 'react-router-dom';
+import { hasPermission } from 'utils/generalUtils';
 function CalendarPage() {
+  const navigate = useNavigate();
   const [isLoaded, setIsLoaded]= useState(false);
   const [error, setError] = useState(null);
   const [refresh, setRefresh] = useState(false);
@@ -127,18 +131,37 @@ onRowsDelete:()=>{handleDelete()},
   };
   const getCalendarData = () => {
     let serviceCaller = new ServiceCaller();
-    CalendarService.getCalendars(serviceCaller, '', (res) => {
-        setIsLoaded(true);
-        setRows(res);
-    }, (error) => {
-          console.log(error)
-          setIsLoaded(true);
-          setError(error);
+    CalendarService.getCalendars(serviceCaller, '')
+    .then(res => {
+      setIsLoaded(true);
+      setRows(res);
     })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
+    })
+    
     setRefresh(false);
   }
   useEffect(() => {
-    getCalendarData()
+    const serviceCaller = new ServiceCaller();
+    JWTUtil.validateStorage(serviceCaller)
+    .then(res => {
+      if(!res) {
+        navigate('/', { replace: true });
+        return
+      }
+
+      if(!hasPermission(navigate)) return
+
+      getCalendarData();
+    })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
+    })
   }, [refresh])
 
   if(error) {

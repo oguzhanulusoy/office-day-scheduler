@@ -1,20 +1,22 @@
 class ScheduleService {
-  
-    addSchedule(serviceCaller, requestBody,callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/schedule", undefined, headers, requestBody, callback, errorCallBack)
-    }
-    getSchedules(serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get("/schedule", queryParams, undefined  ,  callback, errorCallBack)
-    }
-    updateSchedule(serviceCaller, requestBody,callback,errorCallBack){
+    async addSchedule(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/schedule", undefined, headers, requestBody, callback, errorCallBack)
+        return await serviceCaller.post("/schedule", undefined, headers, requestBody)
     }
-    deleteSchedule(erviceCaller, requestBody, callback,errorCallBack){
+
+    async getSchedules(serviceCaller, queryParams) {
+        return await serviceCaller.get("/schedule", queryParams, undefined)
+    }
+
+    async updateSchedule(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/schedule", undefined, headers, requestBody)
+    }
+
+    async deleteSchedule(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/schedule", undefined, headers  , requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/schedule", undefined, headers, requestBody)
+    }
 }
 
 export default new ScheduleService();

@@ -5,7 +5,11 @@ import { useState, useEffect } from "react";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ScheduleService from 'services/schedule/ScheduleService';
 import ServiceCaller from 'services/ServiceCaller';
+import JWTUtil from 'utils/jwtUtil';
+import { useNavigate } from 'react-router-dom';
+import { hasPermission } from 'utils/generalUtils';
 function SchedulePage() {
+  const navigate = useNavigate();
   const [isLoaded, setIsLoaded]= useState(false);
   const [error, setError] = useState(null);
   const [refresh, setRefresh] = useState(false);
@@ -159,18 +163,37 @@ onRowsDelete:()=>{handleDelete()},
   };
   const getScheduleData = () => {
     let serviceCaller = new ServiceCaller();
-    ScheduleService.getSchedules(serviceCaller, '', (res) => {
-        setIsLoaded(true);
-        setRows(res);
-    }, (error) => {
-          console.log(error)
-          setIsLoaded(true);
-          setError(error);
+    ScheduleService.getSchedules(serviceCaller, '')
+    .then(res => {
+      setIsLoaded(true);
+      setRows(res);
     })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
+    })
+
     setRefresh(false); //???
   }
   useEffect(() => {
-    getScheduleData()
+    const serviceCaller = new ServiceCaller();
+    JWTUtil.validateStorage(serviceCaller)
+    .then(res => {
+      if(!res) {
+        navigate('/', { replace: true });
+        return
+      }
+
+      if(!hasPermission(navigate)) return
+      
+      getScheduleData();
+    })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
+    })
   }, [refresh])
 
   if(error) {

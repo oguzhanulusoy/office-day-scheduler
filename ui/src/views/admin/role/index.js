@@ -10,7 +10,11 @@ import CardActions from '@mui/material/CardActions';
 import Typography from '@mui/material/Typography';
 import RoleService from 'services/role/RoleService';
 import ServiceCaller from 'services/ServiceCaller';
+import JWTUtil from 'utils/jwtUtil';
+import { useNavigate } from 'react-router-dom';
+import { hasPermission } from 'utils/generalUtils';
 function RolePage() {
+  const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
   const [createOpen, setCreateOpen]=useState(false);
   const [isLoaded, setIsLoaded]= useState(false);
@@ -102,52 +106,72 @@ onRowsDelete:()=>{handleDelete()},
   };
   const getRoleData = () => {
     let serviceCaller = new ServiceCaller();
-    RoleService.getRoles(serviceCaller, '', (res) => {
-        setIsLoaded(true);
-        setRows(res);
-    }, (error) => {
-          console.log(error)
-          setIsLoaded(true);
-          setError(error);
+    RoleService.getRoles(serviceCaller, '')
+    .then(res => {
+      setIsLoaded(true);
+      setRows(res);
+    })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
     })
     setRefresh(false); 
   }
+
   useEffect(() => {
-    getRoleData()
+    const serviceCaller = new ServiceCaller();
+    JWTUtil.validateStorage(serviceCaller)
+    .then(res => {
+      if(!res) {
+        navigate('/', { replace: true });
+        return
+      }
+
+      if(!hasPermission(navigate)) return
+
+      getRoleData();
+    })
+    .catch(error => {
+      console.log(error)
+      setError(error);
+    })
   }, [refresh])
 
   const saveRole = () => {
     let serviceCaller = new ServiceCaller();
-    RoleService.addRole(serviceCaller, {
-      roleName
-    }, (res) => {
-      setRefresh(true);      
-  },
-    (error) => {
-          console.log(error)
-          setIsLoaded(true);
-          setError(error);
+    RoleService.addRole(serviceCaller, { roleName })
+    .then(res => {
+      setRefresh(true);
+    })
+    .catch(error => {
+      console.log(error)
+      setIsLoaded(true);
+      setError(error);
     })
   }  
 const updateRole = () => {
   let serviceCaller = new ServiceCaller();
-  RoleService.updateRole(serviceCaller, {id: toUpdate, roleName: roleName}, 
-  (res) => {
+  RoleService.updateRole(serviceCaller, {id: toUpdate, roleName: roleName})
+  .then(res => {
     setRefresh(true);
-},
-  (error) => {
-        console.log(error)
+  })
+  .catch(error => {
+    console.log(error)
+    setIsLoaded(true);
+    setError(error);
   })
 }
 const deleteRole = () => {
   let serviceCaller = new ServiceCaller();
-  RoleService.deleteRole(serviceCaller, { ids: selectedIdList }, (res) => {
+  RoleService.deleteRole(serviceCaller, { ids: selectedIdList })
+  .then(res => {
     setRefresh(true);
-},
-  (error) => {
-          console.log(error)
-          setError(error);
-    }) 
+  })
+  .catch(error => {
+    console.log(error)
+    setError(error);
+  })
 }
 const handleDelete = () => {
   deleteRole();

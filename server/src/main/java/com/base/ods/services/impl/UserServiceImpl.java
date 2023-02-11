@@ -1,5 +1,6 @@
 package com.base.ods.services.impl;
 
+import com.base.ods.controllers.requests.UserInfoFromTokenRequest;
 import com.base.ods.domain.*;
 import com.base.ods.enums.Status;
 import com.base.ods.exception.EntityNotFoundException;
@@ -8,9 +9,11 @@ import com.base.ods.mapper.RoleEntityToDTOMapper;
 import com.base.ods.mapper.UserEntityToDTOMapper;
 import com.base.ods.mapper.ZoneEntityToDTOMapper;
 import com.base.ods.repository.UserRepository;
+import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IRoleService;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.UserCreateRequestDTO;
+import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
 import com.base.ods.services.requests.UserUpdateRequestDTO;
 import com.base.ods.services.responses.DepartmentResponseDTO;
 import com.base.ods.services.responses.RoleResponseDTO;
@@ -46,6 +49,7 @@ public class UserServiceImpl implements IUserService {
     private ZoneEntityToDTOMapper zoneMapper;
     private RoleEntityToDTOMapper roleMapper;
     private DepartmentEntityToDTOMapper departmentMapper;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     public List<UserResponseDTO> getAllUsers(Optional<Status> status, Pageable pageable) {
@@ -76,6 +80,23 @@ public class UserServiceImpl implements IUserService {
         responseDTO.setGroupManagerFirstName(departmentDTO.getGroupManagerFirstName());
         responseDTO.setGroupManagerLastName(departmentDTO.getGroupManagerLastName());
         return responseDTO;
+    }
+
+    @Override
+    public UserResponseDTO getUserByToken(UserInfoFromTokenRequestDTO token) {
+        try {
+            Long userId = jwtTokenProvider.getUserIdFromJwt(token.getToken());
+            User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(Messages.USER_NOT_FOUND + userId));
+            UserResponseDTO responseDTO = mapper.toDTO(user);
+            DepartmentResponseDTO departmentDTO = departmentService.getDepartmentById(user.getDepartment().getId());
+            responseDTO.setDepartmentManagerFirstName(departmentDTO.getDepartmentManagerFirstName());
+            responseDTO.setDepartmentManagerLastName(departmentDTO.getDepartmentManagerLastName());
+            responseDTO.setGroupManagerFirstName(departmentDTO.getGroupManagerFirstName());
+            responseDTO.setGroupManagerLastName(departmentDTO.getGroupManagerLastName());
+            return responseDTO;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

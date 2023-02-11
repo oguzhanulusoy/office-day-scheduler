@@ -1,20 +1,22 @@
 class DepartmentService {
-  
-    addDepartment(serviceCaller, requestBody,callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/department", undefined, headers, requestBody, callback, errorCallBack)
-    } 
-    getDepartments(serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get("/department", queryParams, undefined  ,  callback, errorCallBack)
-    }
-    updateDepartment(serviceCaller, requestBody,callback,errorCallBack){
+    async addDepartment(serviceCaller, requestBody){
         let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/department", undefined, headers, requestBody, callback, errorCallBack)
+        return await serviceCaller.post("/department", undefined, headers, requestBody)
     }
-    deleteDepartment(serviceCaller, requestBody, callback,errorCallBack){
+
+    async getDepartments(serviceCaller, queryParams){
+        return await serviceCaller.get("/department", queryParams, undefined)
+    }
+
+    async updateDepartment(serviceCaller, requestBody){
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/department", undefined, headers, requestBody)
+    }
+
+    async deleteDepartment(serviceCaller, requestBody){
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/department", undefined, headers  , requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/department", undefined, headers, requestBody)
+    }
 }
 
 export default new DepartmentService();

@@ -3,6 +3,7 @@ package com.base.ods.services;
 import com.base.ods.domain.User;
 import com.base.ods.enums.Status;
 import com.base.ods.services.requests.UserCreateRequestDTO;
+import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
 import com.base.ods.services.requests.UserUpdateRequestDTO;
 import com.base.ods.services.responses.UserResponseDTO;
 
@@ -16,6 +17,8 @@ public interface IUserService {
     List<UserResponseDTO> getAllUsers(Optional<Status> status, Pageable pageable);
 
     UserResponseDTO getUserById(Long id);
+
+    UserResponseDTO getUserByToken(UserInfoFromTokenRequestDTO token);
 
     UserResponseDTO createUser(UserCreateRequestDTO userCreateRequestDTO);
 

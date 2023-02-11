@@ -15,7 +15,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import UserService from 'services/user/UserService';
+import JWTUtil from 'utils/jwtUtil';
+import { useNavigate } from 'react-router-dom';
+import { hasPermission } from 'utils/generalUtils';
 function DepartmentPage() {
+  const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
   const [createOpen, setCreateOpen]=useState(false); 
   const [isLoaded, setIsLoaded]= useState(false);
@@ -149,13 +153,14 @@ onRowsDelete:()=>{handleDelete()},
 }
   const handleDelete = () => {
     let serviceCaller = new ServiceCaller();
-    DepartmentService.deleteDepartment(serviceCaller, { ids: selectedIdList }, (res) => {
+    DepartmentService.deleteDepartment(serviceCaller, { ids: selectedIdList })
+    .then((res) => {
       setRefresh(true);
-  },
-    (error) => {
-            console.log(error)
-            setError(error);
-      }) 
+    })
+    .catch((error) => {
+      console.log(error)
+      setError(error);
+    })
   }
   //modal
   const style = {
@@ -177,14 +182,16 @@ const saveDepartment = () => {
     groupCode: groupCode,
     departmentManagerId: departmentManager,
     groupManagerId: groupManager,
-  }, (res) => {
+  })
+  .then((res) => {
     setRefresh(true);
-  },
-    (error) => {
-        console.log(error)
-        setIsLoaded(true);
-        setError(error);
-  })}
+  })
+  .catch((error) => {
+    console.log(error)
+    setIsLoaded(true);
+    setError(error);
+  })
+}
 
 const handleCreate=()=>{
   saveDepartment();
@@ -196,15 +203,23 @@ const handleCreate=()=>{
 }
 const updateDepartment = () => {
   let serviceCaller = new ServiceCaller();
-  DepartmentService.updateDepartment(serviceCaller, {id:toUpdate, departmentCode:departmentCode, departmentManagerId: departmentManager, groupCode: groupCode, groupManagerId: groupManager}, 
-  (res) => {
-    console.log(res);
-    setRefresh(true);
-},
-  (error) => {
-        console.log(error)
+  DepartmentService.updateDepartment(serviceCaller, {
+    id: toUpdate, 
+    departmentCode: departmentCode, 
+    departmentManagerId: departmentManager, 
+    groupCode: groupCode, 
+    groupManagerId: groupManager
   })
-  }
+  .then((res) => {
+    setRefresh(true);
+    console.log(res)
+  })
+  .catch((error) => {
+    console.log(error)
+    setIsLoaded(true);
+    setError(error);
+  })
+}
 const handleUpdate=()=>{
   updateDepartment();
   setDepartmentCode("");
@@ -224,29 +239,48 @@ const handleUpdate=()=>{
 
 const getDepartmentData = () => {
   let serviceCaller = new ServiceCaller();
-  DepartmentService.getDepartments(serviceCaller, '', (res) => {
-      setIsLoaded(true);
-      setRows(res);
-  }, (error) => {
-        console.log(error)
-        setIsLoaded(true);
-        setError(error);
+  DepartmentService.getDepartments(serviceCaller, '')
+  .then(res => {
+    setIsLoaded(true);
+    setRows(res);
+  })
+  .catch(error => {
+    console.log(error)
+    setIsLoaded(true);
+    setError(error);
   })
   setRefresh(false);
 }
 
 useEffect(() => {
-  getDepartmentData();
-  getUserData();
+  const serviceCaller = new ServiceCaller();
+  JWTUtil.validateStorage(serviceCaller)
+  .then((res) => {
+    if(!res) {
+      navigate('/', { replace: true });
+      return
+    }
+
+    if(!hasPermission(navigate)) return
+    
+    getDepartmentData();
+    getUserData();
+  })
+  .catch((error) => {
+    console.log(error)
+    setError(error);
+  })
 }, [refresh])
 
 const getUserData = () => {
   let serviceCaller = new ServiceCaller();
-  UserService.getUsers(serviceCaller, '', (res) => {
-      setUserList(res)
-  }, (error) => {
-        console.log(error)
-        setError(error);
+  UserService.getUsers(serviceCaller, '')
+  .then(res => {
+    setUserList(res);
+  })
+  .catch(error => {
+    console.log(error);
+    setError(error);
   })
 }
 

@@ -16,35 +16,35 @@ const CalendarPage = Loadable(lazy(() => import('views/admin/calendar')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const AuthenticationRoutes = {
-    path: '/',
+    path: '/admin/',
     element: <AdminLayout />,
     children: [
         {
-            path: '/admin/role',
+            path: 'role',
             element: <RolePage />
         },
         {
-            path: '/admin/department',
+            path: 'department',
             element: <DepartmentPage />
         },
         {
-            path: '/admin/out-of-office-day',
+            path: 'out-of-office-day',
             element: <OutOfOfficeDayPage />
         },
         {
-            path: '/admin/user-list',
+            path: 'user-list',
             element: <UserPage />
         },
         {
-            path: '/admin/zone',
+            path: 'zone',
             element: <ZonePage />
         },
         {
-            path: '/admin/schedule',
+            path: 'schedule',
             element: <SchedulePage />
         },
         {
-            path: '/admin/calendar',
+            path: 'calendar',
             element: <CalendarPage />
         }
     ]

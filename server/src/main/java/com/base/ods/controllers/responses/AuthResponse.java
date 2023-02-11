@@ -13,4 +13,5 @@ public class AuthResponse {
     String lastName;
     Long registrationNumber;
     String email;
+    String status;
 }

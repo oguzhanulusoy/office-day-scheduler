@@ -34,11 +34,7 @@ import Transitions from 'ui-component/extended/Transitions';
 import { IconLogout, IconSearch, IconSettings, IconUser, IconUserCircle } from '@tabler/icons';
 
 // ==============================|| PROFILE MENU ||============================== //
-import { useAuth } from '../../../../contexts/AuthContext';
-
-
 const ProfileSection = () => {
-    /* const { logout } = useAuth(); */
     const theme = useTheme();
     const customization = useSelector((state) => state.customization);
     const navigate = useNavigate();
@@ -59,9 +55,9 @@ const ProfileSection = () => {
     };
     const logout = () => {
         localStorage.removeItem("tokenKey");
-        localStorage.removeItem("currentUser");
+        sessionStorage.removeItem("userId");
         localStorage.removeItem("refreshKey");
-        localStorage.removeItem("currentUserRole");
+        sessionStorage.removeItem("userRole");
         navigate('/');
     };
 

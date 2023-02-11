@@ -5,7 +5,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ZoneService from 'services/zone/ZoneService';
 import ServiceCaller from 'services/ServiceCaller';
+import JWTUtil from "utils/jwtUtil";
+import { hasPermission } from "utils/generalUtils";
+import { useNavigate } from 'react-router-dom';
 function ZonePage() {
+    const navigate = useNavigate();
     const [rows, setRows] = useState([]);
     const [isLoaded, setIsLoaded]= useState(false);
     const [error, setError] = useState(null);
@@ -85,18 +89,34 @@ function ZonePage() {
 
     const getZoneData = () => {
       let serviceCaller = new ServiceCaller();
-      ZoneService.getZones(serviceCaller, '', (res) => {
-          setIsLoaded(true);
-          setRows(res);
-      }, (error) => {
-            console.log(error)
-            setIsLoaded(true);
-            setError(error);
+      ZoneService.getZones(serviceCaller, '')
+      .then((res) => {
+        setIsLoaded(true);
+        setRows(res);
+      })
+      .catch((error) => {
+        console.log(error)
+        setIsLoaded(true);
+        setError(error);
       })
     }
 
     useEffect(() => {
-      getZoneData()
+      const serviceCaller = new ServiceCaller();
+      JWTUtil.validateStorage(serviceCaller)
+      .then((res) => {
+        if (!res) {
+          navigate('/', { replace: true });
+          return
+        }
+
+        if(!hasPermission(navigate)) return
+
+        getZoneData();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
     }, [])
 
     const options = {

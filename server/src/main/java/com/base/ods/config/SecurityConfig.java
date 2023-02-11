@@ -27,14 +27,28 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
     private JwtAuthenticationEntryPoint handler;
-    private static final String[] AUTH_LIST = {
-            "/role/**",
-            "/zone/**",
-            "/schedule/**",
-            "/user/**",
-            "/department/**",
-            "/outofofficeday/**",
-            "/calendar/**",
+    private static final String[] ADMIN_AUTH_LIST = {
+        "/role/**",
+        "/zone/**",
+        "/schedule/**",
+        "/user/**",
+        "/department/**",
+        "/outofofficeday/**",
+        "/calendar/**",
+    };
+
+    private static final String[] EMPLOYEE_GET_AUTH_LIST = {
+        "/user/{id}",
+        "/schedule",
+        "/outofofficeday",
+        "/calendar",
+    };
+
+    private static final String[] EMPLOYEE_POST_AUTH_LIST = {
+        "/user/token",
+        "/schedule",
+        "/outofofficeday",
+        "/calendar",
     };
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationEntryPoint handler) {
@@ -84,9 +98,10 @@ public class SecurityConfig {
                 .exceptionHandling().authenticationEntryPoint(handler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
-                .antMatchers("/auth/**")
-                .permitAll()
-                .antMatchers(AUTH_LIST).permitAll()
+                .antMatchers("/auth/**").permitAll()
+                .antMatchers(HttpMethod.GET, EMPLOYEE_GET_AUTH_LIST).authenticated()
+                .antMatchers(HttpMethod.POST, EMPLOYEE_POST_AUTH_LIST).authenticated()
+                .antMatchers(ADMIN_AUTH_LIST).hasAnyAuthority("MANAGER")
                 .anyRequest().authenticated();
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

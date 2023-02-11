@@ -18,102 +18,97 @@ import {
 } from '@mui/material';
 
 // third party
-import * as Yup from 'yup';
+import { toast } from 'react-toastify';
 import { Formik } from 'formik';
 
 // project imports
-import useScriptRef from 'hooks/useScriptRef';
 import AnimateButton from 'ui-component/extended/AnimateButton';
 import { useNavigate } from 'react-router-dom'; 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
+import { validateEmail, validatePassword } from 'utils/credentials-checker';
+import { useEffect } from 'react';
+
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const Login = ({ ...others }) => {
-    let navigate = useNavigate();
+    const navigate = useNavigate();
     const theme = useTheme();
-    const scriptedRef = useScriptRef();
     const [checked, setChecked] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => {
         setShowPassword(!showPassword);
     };
 
+    useEffect(()=>{
+        sessionStorage.clear();
+        localStorage.clear();
+    },[]);
+
     const handleMouseDownPassword = (event) => {
         event.preventDefault();
     };
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+
     const handleEmail = (value) => {
         setEmail(value)
-    } 
+    }
 
     const handlePassword = (value) => {
         setPassword(value)
-    } 
-    const post = (url, body) => {
+    }
 
-        var request = fetch(url,  {
-            method: "POST", 
+    const login = (e) => {
+        e.preventDefault();
+        if (!validateEmail(email)) {
+            toast.error("Invalid email format", { autoClose: 1000 });
+            return false;
+        }
+        if (!validatePassword(password)) {
+            toast.error("Password must be at least 8 characters long", { autoClose: 1000 });
+            return false;
+        }
+
+        const requestBody = {
+            email: email,
+            password: password
+        }
+
+        fetch('/auth/login', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+                "Content-Type": "application/json",
             },
-            body : JSON.stringify(body),
-          })
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.status === 'success') {
+                toast.success("Login successful", { autoClose: 1000 });
+                localStorage.setItem("tokenKey", result.accessToken);
+                localStorage.setItem("refreshKey", result.refreshToken);
+                sessionStorage.setItem("userId", result.userId);
+                sessionStorage.setItem("userRole", result.roleName);
+
+                navigate("/user/profile", { replace: true });
+
+            } else if(result.status === 'failed' ) {
+                toast.error("Credentials are not correct", { autoClose: 1000 });
+            } else {
+                toast.error("Login failed. Please try again. Something went wrong.", { autoClose: 1000 })
+            }
+        }).catch(error => {
+            toast.error("Login failed. Please try again. Something went wrong.", { autoClose: 1000 })
+            console.log(error);
+        })
+    }
     
-        return request
-    }
-    const sendRequest = (path) => {
-        post(("/auth/"+path), {
-            email  : email , 
-            password : password,
-          })
-          .then((res) => res.json())
-          .then((result) => {   
-            localStorage.setItem("tokenKey", result.accessToken);
-            localStorage.setItem("refreshKey", result.refreshToken);
-            localStorage.setItem("currentUser", result.userId);
-            localStorage.setItem("currentUserRole", result.roleName);
-           })
-          .catch((err) => console.log(err))
-    }
-    const handleButton = (path) => {
-        sendRequest(path);
-        setEmail("");
-        setPassword("");
-        console.log("Storage: ", localStorage);
-        //navigate("/user/profile");  
-    };
     return (
         <>
-            <Formik
-                initialValues={{
-                    email: '',
-                    password: '',
-                    submit: null
-                }}
-                validationSchema={Yup.object().shape({
-                    //email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                    //password: Yup.string().max(255).required('Password is required')
-                })}
-                onSubmit={async ({ setErrors, setStatus, setSubmitting }) => {
-                    try {
-                        if (scriptedRef.current) {
-                            setStatus({ success: true });
-                            setSubmitting(false);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        if (scriptedRef.current) {
-                            setStatus({ success: false });
-                            setErrors({ submit: err.message });
-                            setSubmitting(false);
-                        }
-                    }
-                }}
-            >
+            <Formik>
                 {({ errors, handleBlur, handleSubmit, isSubmitting, touched }) => (
                     <form noValidate onSubmit={handleSubmit} {...others}>
                         <FormControl fullWidth error={Boolean(touched.email && errors.email)} sx={{ ...theme.typography.customInput }}>
@@ -203,7 +198,7 @@ const Login = ({ ...others }) => {
                                     variant="contained"
                                     color="secondary"
                                     style={{backgroundColor:"#6F6E6E"}}
-                                    onClick={() => handleButton('login')}
+                                    onClick={(e) => login(e)}
                                 >
                                     Sign in
                                 </Button>

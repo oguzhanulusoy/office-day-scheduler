@@ -1,20 +1,22 @@
 class ZoneService {
-  
-    addZone(serviceCaller, requestBody, callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/zone", undefined, headers, requestBody, callback, errorCallBack)
-    }
-    getZones(serviceCaller, queryParams, callback, errorCallBack){
-        serviceCaller.get("/zone", queryParams, undefined,  callback, errorCallBack)
-    }
-    updateZone(serviceCaller, requestBody, callback, errorCallBack){
+    async addZone(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/zone", undefined, headers, requestBody, callback, errorCallBack)
+        return await serviceCaller.post("/zone", undefined, headers, requestBody)
     }
-    deleteZone(serviceCaller, requestBody, callback, errorCallBack){
+
+    async getZones(serviceCaller, queryParams) {
+        return await serviceCaller.get("/zone", queryParams, undefined)
+    }
+
+    async updateZone(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/zone", undefined, headers, requestBody)
+    }
+
+    async deleteZone(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/zone", undefined, headers, requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/zone", undefined, headers, requestBody)
+    }
 }
 
 export default new ZoneService();

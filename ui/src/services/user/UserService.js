@@ -1,17 +1,25 @@
 class UserService {  
-    getUsers(serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get("/user", queryParams, undefined  ,  callback, errorCallBack)
+    async getUsers(serviceCaller, queryParams){
+        return await serviceCaller.get("/user", queryParams, undefined)
     }
-    getOneUser(url, serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get(url, queryParams, undefined  ,  callback, errorCallBack)
+
+    async getOneUser(serviceCaller, url, queryParams){
+        return await serviceCaller.get(url, queryParams, undefined)
     }
-    updateUser(serviceCaller, requestBody,callback,errorCallBack){
+
+    async getUserFromToken(serviceCaller, requestBody){
+        let headers = {'Content-Type': 'application/json'};
+        return await serviceCaller.post("/user/token", undefined, headers, requestBody)
+    }
+
+    async updateUser(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/user", undefined, headers, requestBody, callback, errorCallBack)
+        return await serviceCaller.update("/user", undefined, headers, requestBody)
     }
-    deleteUser(serviceCaller, requestBody, callback,errorCallBack){
+
+    async deleteUser(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/user", undefined, headers  , requestBody, callback, errorCallBack)
+        return await serviceCaller.delete("/user", undefined, headers, requestBody)
     }
 }
 

@@ -28,20 +28,27 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public AuthResponse login(UserRequest loginRequest) {
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
-        Authentication auth = authenticationManager.authenticate(authToken);
-        SecurityContextHolder.getContext().setAuthentication(auth);
-        String jwtToken = jwtTokenProvider.generateJwtToken(auth);
-        User user = userService.getUserByEmail(loginRequest.getEmail());
         AuthResponse authResponse = new AuthResponse();
-        authResponse.setAccessToken("Bearer " + jwtToken);
-        authResponse.setRefreshToken(refreshTokenService.createRefreshToken(user));
-        authResponse.setUserId(user.getId());
-        authResponse.setRoleName(user.getRole().getRoleName());
-        authResponse.setFirstName(user.getFirstName());
-        authResponse.setLastName(user.getLastName());
-        authResponse.setRegistrationNumber(user.getRegistrationNumber());
-        authResponse.setEmail(user.getEmail());
+        try {
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword());
+            Authentication auth = authenticationManager.authenticate(authToken);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            String jwtToken = jwtTokenProvider.generateJwtToken(auth);
+            System.out.println(jwtTokenProvider.getRolesFromToken(jwtToken));
+            User user = userService.getUserByEmail(loginRequest.getEmail());
+            authResponse.setAccessToken("Bearer " + jwtToken);
+            authResponse.setRefreshToken(refreshTokenService.createRefreshToken(user));
+            authResponse.setUserId(user.getId());
+            authResponse.setRoleName(user.getRole().getRoleName());
+            authResponse.setFirstName(user.getFirstName());
+            authResponse.setLastName(user.getLastName());
+            authResponse.setRegistrationNumber(user.getRegistrationNumber());
+            authResponse.setEmail(user.getEmail());
+            authResponse.setStatus("success");
+        } catch (Exception e) {
+            authResponse.setStatus("failed");
+        }
+
         return authResponse;
     }
 
@@ -52,13 +59,12 @@ public class AuthServiceImpl implements IAuthService {
         if (token.getToken().equals(refreshRequest.getRefreshToken()) &&
                 !refreshTokenService.isRefreshExpired(token)) {
             User user = token.getUser();
-            String jwtToken = jwtTokenProvider.generateJwtTokenByUserId(user.getId());
-            //response.setMessage("token successfully refreshed.");
+            boolean isAdmin = user.getRole().getRoleName().equals("MANAGER");
+            String jwtToken = jwtTokenProvider.generateJwtTokenByUserId(user.getId(), isAdmin);
             response.setAccessToken("Bearer " + jwtToken);
             response.setUserId(user.getId());
             return new ResponseEntity<>(response, HttpStatus.OK);
         } else {
-            //response.setMessage("refresh token is not valid.");
             return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
         }
     }

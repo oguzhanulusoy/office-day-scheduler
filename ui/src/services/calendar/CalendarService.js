@@ -1,20 +1,22 @@
 class CalendarService {
-  
-    addCalendar(serviceCaller, requestBody,callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/calendar", undefined, headers, requestBody, callback, errorCallBack)
-    }
-    getCalendars(serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get("/calendar", queryParams, undefined  ,  callback, errorCallBack)
-    }
-    updateCalendar(serviceCaller, requestBody,callback,errorCallBack){
+    async addCalendar(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/calendar", undefined, headers, requestBody, callback, errorCallBack)
+        return await serviceCaller.post("/calendar", undefined, headers, requestBody)
     }
-    deleteCalendar(serviceCaller, requestBody, callback,errorCallBack){
+
+    async getCalendars(serviceCaller, queryParams) {
+        return await serviceCaller.get("/calendar", queryParams, undefined)
+    }
+
+    async updateCalendar(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/calendar", undefined, headers, requestBody)
+    }
+
+    async deleteCalendar(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/calendar", undefined, headers  , requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/calendar", undefined, headers, requestBody)
+    }
 }
 
 export default new CalendarService();

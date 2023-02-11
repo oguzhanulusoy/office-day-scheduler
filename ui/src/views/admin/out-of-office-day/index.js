@@ -14,7 +14,11 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import OutOfOfficeDayService from 'services/out-of-office-day/OutOfOfficeDayService'; 
 import ServiceCaller from 'services/ServiceCaller';
+import JWTUtil from 'utils/jwtUtil';
+import { useNavigate } from 'react-router-dom';
+import { hasPermission } from 'utils/generalUtils';
 function OutOfOfficeDayPage() {
+  const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
   const [createOpen, setCreateOpen]=useState(false);
   const [isLoaded, setIsLoaded]= useState(false);
@@ -43,12 +47,12 @@ function OutOfOfficeDayPage() {
     }
     const updateOutOfOfficeDay = () => {
       let serviceCaller = new ServiceCaller();
-      OutOfOfficeDayService.updateOutOfOfficeDay(serviceCaller, {id: toUpdate, displayName: dayName, date: date}, 
-      (res) => {
+      OutOfOfficeDayService.updateOutOfOfficeDay(serviceCaller, {id: toUpdate, displayName: dayName, date: date})
+      .then((res) => {
         setRefresh(true);
-    },
-      (error) => {
-            console.log(error)
+      })
+      .catch((error) => {
+        console.log(error)
       })
     }
     const handleUpdate = () => {
@@ -75,30 +79,31 @@ function OutOfOfficeDayPage() {
     
     const getOutOfOfficeDayData = () => {
         let serviceCaller = new ServiceCaller();
-        OutOfOfficeDayService.getOutOfOfficeDays(serviceCaller, '', (res) => {
-            setIsLoaded(true);
-            setRows(res);
-        }, (error) => {
-              console.log(error)
-              setIsLoaded(true);
-              setError(error);
+        OutOfOfficeDayService.getOutOfOfficeDays(serviceCaller, '')
+        .then((res) => {
+          setIsLoaded(true);
+          setRows(res);
+        })
+        .catch((error) => {
+          console.log(error)
+          setIsLoaded(true);
+          setError(error);
         })
         setRefresh(false);
       }
 
       const saveOutOfOfficeDay = () => {
         let serviceCaller = new ServiceCaller();
-        OutOfOfficeDayService.addOutOfOfficeDay(serviceCaller, {
-          displayName: dayName,
-          date: date
-        }, (res) => {
+        OutOfOfficeDayService.addOutOfOfficeDay(serviceCaller, { displayName: dayName, date: date })
+        .then((res) => {
           setRefresh(true);
-      },
-        (error) => {
-              console.log(error)
-              setIsLoaded(true);
-              setError(error);
-        })}
+        })
+        .catch((error) => {
+          console.log(error)
+          setIsLoaded(true);
+          setError(error);
+        })
+      }
       const handleCreate=()=>{
           saveOutOfOfficeDay();
           setDayName("");
@@ -106,7 +111,22 @@ function OutOfOfficeDayPage() {
         }
 
       useEffect(() => {
-        getOutOfOfficeDayData()
+        const serviceCaller = new ServiceCaller();
+        JWTUtil.validateStorage(serviceCaller)
+        .then((res) => {
+          if(!res){
+            navigate('/', { replace: true });
+            return
+          }
+
+          if(!hasPermission(navigate)) return
+
+          getOutOfOfficeDayData();
+        })
+        .catch((error) => {
+          console.log(error)
+          setError(error);
+        })
       }, [refresh])
 
 
@@ -153,13 +173,15 @@ function OutOfOfficeDayPage() {
           ];
     const handleDelete = () => {
       let serviceCaller = new ServiceCaller();
-      OutOfOfficeDayService.deleteOutOfOfficeDay(serviceCaller, { ids: selectedIdList }, (res) => {
-      setRefresh(true);
-    },
-      (error) => {
+      OutOfOfficeDayService.deleteOutOfOfficeDay(serviceCaller, { ids: selectedIdList })
+      .then((res) => {
+        setRefresh(true);
+      })
+      .catch((error) => {
         console.log(error)
         setError(error);
-    })}   
+      })
+    }   
     const options = {
             filterType: 'dropdown', 
               onRowSelectionChange: (currentSelect, allSelected) => {                   

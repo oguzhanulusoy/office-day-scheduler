@@ -1,20 +1,22 @@
 class OutOfOfficeDayService {
-  
-    addOutOfOfficeDay(serviceCaller, requestBody,callback,errorCallBack){
-    let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.post("/outofofficeday", undefined, headers, requestBody, callback, errorCallBack)
-    } 
-    getOutOfOfficeDays(serviceCaller, queryParams, callback,errorCallBack){
-        serviceCaller.get("/outofofficeday", queryParams, undefined,  callback, errorCallBack)
+    async addOutOfOfficeDay(serviceCaller, requestBody) {
+        let headers = { 'Content-Type': 'application/json'};
+        return await serviceCaller.post("/outofofficeday", undefined, headers, requestBody)
     }
-    updateOutOfOfficeDay(serviceCaller, requestBody, callback, errorCallBack){
-        let headers= { 'Content-Type': 'application/json'};
-        serviceCaller.update("/outofofficeday", undefined, headers, requestBody, callback, errorCallBack)
+
+    async getOutOfOfficeDays(serviceCaller, queryParams) {
+        return await serviceCaller.get("/outofofficeday", queryParams, undefined)
     }
-    deleteOutOfOfficeDay(serviceCaller, requestBody, callback, errorCallBack){
+
+    async updateOutOfOfficeDay(serviceCaller, requestBody) {
+        let headers = { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/outofofficeday", undefined, headers, requestBody)
+    }
+
+    async deleteOutOfOfficeDay(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
-        serviceCaller.delete("/outofofficeday", undefined, headers, requestBody, callback, errorCallBack)
-    } 
+        return await serviceCaller.delete("/outofofficeday", undefined, headers, requestBody)
+    }
 }
 
 export default new OutOfOfficeDayService();
