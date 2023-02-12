@@ -13,7 +13,7 @@ const myschedule = {
             id: 'myschedule',
             title: 'My Schedule',
             type: 'item',
-            url: '/user/schedule',
+            url: '/user/myschedule',
             icon: icons.KeyboardArrowRightIcon,
             breadcrumbs: false
         }

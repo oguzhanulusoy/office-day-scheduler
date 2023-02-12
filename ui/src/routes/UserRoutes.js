@@ -13,7 +13,7 @@ const MainRoutes = {
     element: <UserLayout />,
     children: [
         {
-            path: 'schedule',
+            path: 'myschedule',
             element: <SchedulePage />
         },
         {

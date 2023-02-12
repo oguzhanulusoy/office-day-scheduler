@@ -53,13 +53,16 @@ const NavItem = ({ item, level }) => {
 
     // active menu item on page load
     useEffect(() => {
-        const currentIndex = document.location.pathname
-            .toString()
-            .split('/')
-            .findIndex((id) => id === item.id);
-        if (currentIndex > -1) {
-            dispatch({ type: MENU_OPEN, id: item.id });
+        const paths = document.location.pathname.toString().split('/');
+        const path = paths[paths.length - 1];
+        
+        for (const i of item.id) {
+            if (i === path) {
+                dispatch({ type: MENU_OPEN, id: item.id });
+                break
+            }
         }
+
         // eslint-disable-next-line
     }, []);
 

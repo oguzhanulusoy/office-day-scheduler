@@ -3,12 +3,37 @@ import { Typography } from '@mui/material';
 
 // project imports
 import NavGroup from './NavGroup';
-import menuItem from 'menu-items/user';
+import userMenuItems from 'menu-items/user';
+import adminMenuItems from 'menu-items/admin';
+import { useState } from 'react';
+
+import ServiceCaller from 'services/ServiceCaller';
+import { useNavigate } from 'react-router-dom'; 
+import JWTUtil from 'utils/jwtUtil';
+import { useEffect } from 'react';
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-    const navItems = menuItem.items.map((item) => {
+    const navigate = useNavigate();
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const serviceCaller = new ServiceCaller();
+        JWTUtil.validateStorage(serviceCaller)
+        .then((response) => {
+            if (!response) {
+                navigate('/', { replace: true });
+                return 
+            }
+
+            setUserRole(sessionStorage.getItem('userRole'));
+        })
+    }, [])
+
+    const navItemList = userRole === "MANAGER" ? adminMenuItems : userMenuItems;
+
+    const navItems = navItemList.items.map((item) => {
         switch (item.type) {
             case 'group':
                 return <NavGroup key={item.id} item={item} />;
