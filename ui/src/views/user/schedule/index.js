@@ -11,262 +11,430 @@ import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-function Calendar () {
-  const navigate = useNavigate();
-  let vacation = 2;
-  const [selectedDaysList, setSelectedDaysList] = useState([])
-  const [wfhList, setWfhList] = useState([]);
-  const [officeList, setOfficeList] = useState([]);
-  const [fullMonthDates, setFullMonthDates] = useState([])
-  const [dates, setDates] = useState([]);
-  const [outOfOfficeDayList, setOutOfOfficeDayList] = useState([]);
-  var currentTime = new Date()
-  var month = currentTime.getMonth() + 1
-  var day = currentTime.getDate()
-  var year = currentTime.getFullYear()
+class MyCalendarPageHelper {
+  constructor() {
+    this.serviceCaller = new ServiceCaller();
+    this.currentTime = new Date();
+    this.month = this.currentTime.getMonth() + 1
+    this.day = this.currentTime.getDate()
+    this.year = this.currentTime.getFullYear()
 
-  const saveSchedule = () => {
-    let serviceCaller = new ServiceCaller();
-    ScheduleService.addSchedule(serviceCaller, {
-      userId: sessionStorage.getItem("userId"),
-      officeDay: officeList.length,
-      workFromHome: wfhList.length,
-      vacation: vacation,
-      report: 100,
-      totalDay: fullMonthDates.length, // - out of office day count - vacation
-      dateMonth: getMonthName(month),
-      dateYear: year
-    })
+    this.vacation = 2;
+  }
+
+  initSetterFunctions({ navigate, setSelectedDaysList, setWfhList, 
+    setOfficeList, setFullMonthDates, setDates, 
+    setOutOfOfficeDayList, setIsLoaded, setError, setRefresh }) {
+
+    this.navigate = navigate;
+    this.setSelectedDaysList = setSelectedDaysList;
+    this.setWfhList = setWfhList;
+    this.setOfficeList = setOfficeList;
+    this.setFullMonthDates = setFullMonthDates;
+    this.setDates = setDates;
+    this.setOutOfOfficeDayList = setOutOfOfficeDayList;
+    this.setIsLoaded = setIsLoaded;
+    this.setError = setError;
+    this.setRefresh = setRefresh;
+  }
+
+  initParameters(parameters) {
+    this.selectedDaysList = parameters.selectedDaysList;
+    this.wfhList = parameters.wfhList;
+    this.officeList = parameters.officeList;
+    this.fullMonthDates = parameters.fullMonthDates;
+    this.dates = parameters.dates;
+    this.outOfOfficeDayList = parameters.outOfOfficeDayList;
+    this.isLoaded = parameters.isLoaded;
+    this.error = parameters.error;
+    this.refresh = parameters.refresh;
+  }
+
+  effectHelper() {
+    JWTUtil.validateStorage(this.serviceCaller)
     .then((res) => {
-      console.log(res);
+      if (!res) {
+        this.navigate('/', { replace: true });
+        return
+      }
+      this.getOutOfOfficeDayData();
+      this.setFullMonthDates(this.getDaysInMonth(this.month, this.year));
+      this.setRefresh(true);
     })
     .catch((error) => {
       console.log(error)
-    })
-  }  
-
-  const saveCalendar = () => {
-    let serviceCaller = new ServiceCaller();
-    CalendarService.addCalendar(serviceCaller, {
-      userId: sessionStorage.getItem("userId"),
-      dateMonth: getMonthName(month),
-      dateYear: year,
-      days: officeList.length === 0 ? null : officeList.toString()
-    })
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((error) => {
-      console.log(error)
+      this.setError(error);
+      this.setIsLoaded(true);
     })
   }
   
-
-  const getMonthName = (monthNumber) => {
-    const date = new Date();
-    date.setMonth(monthNumber - 1);
-    return date.toLocaleString('en-US', { month: 'long' });
+  init(res) {
+    let days = [];
+    let officeDays = [];
+    for (let i = 0; i < res.length; i++) {
+      days.push(
+        {
+          id: res[i].id,
+          title: res[i].displayName,
+          date: res[i].date,
+          color:'#4BB492'
+        }
+      );
+      officeDays.push(res[i].date);
+    }
+    this.setDates(days);
+    this.setOutOfOfficeDayList(officeDays);
   }
 
-  const getDaysInMonth = (month, year) => {
-    let monthValue=month
-    month--; 
-    var date = new Date(year, month, 1);
-    var days = [];
-    while (date.getMonth() === month) {
-        var tmpDate = new Date(date);            
-        var weekDay = tmpDate.getDay();
-        var day = tmpDate.getDate();
-        if (weekDay%6) {
-            if(monthValue<10){
-                if(day<10){
-                    days.push(year + "-" + "0" + monthValue + "-" + "0" + day);
-                }else{
-                    days.push(year + "-" + "0" + monthValue + "-" + day);
-                }
-            }
-            else{
-                if(day<10){
-                    days.push(year + "-" + monthValue + "-" + "0" + day);
-                }else{
-                    days.push(year + "-" + monthValue + "-" + day);
-                }
-            }
-        }
-        date.setDate(date.getDate() + 1);
-    }
-    return days;
-} 
-// isDateValid: created to check whether the selected date is one of the "out of office days" or not
-  const isDateValid = (date) => {  
-    if(outOfOfficeDayList.includes(date)){
+  getOutOfOfficeDayData() {
+    OutOfOfficeDayService.getOutOfOfficeDays(this.serviceCaller, '')
+    .then((res) => {
+      this.init(res);
+      this.setIsLoaded(true);
+    })
+    .catch((error) => {
+      this.setError(error);
+      this.setIsLoaded(true);
+      console.log(error)
+    })
+
+    this.setRefresh(false);
+  }
+
+  getMonthName(monthNumber) {
+    const date = new Date();
+    date.setMonth(monthNumber - 1);
+
+    return date.toLocaleString('en-US', { month: 'long' });  
+  }
+
+  isDateValid(date) {  
+    if(this.outOfOfficeDayList.includes(date)){
       toast.warning("Day cannot be selected", { autoClose: 1000 });
       return false;
     }
     return true;
   }
 
-  const isDateSelected = (date) => {
-    if(selectedDaysList.includes(date)){
+  isDateSelected(date) {
+    if(this.selectedDaysList.includes(date)){
       toast.warning("Day has already selected", { autoClose: 1000 });
       return true;
-    } 
+    } else if (this.wfhList.includes(date)) {
+      toast.warning("Day has already selected as WFH", { autoClose: 1000 });
+      return true;
+    } else if (this.officeList.includes(date)) {
+      toast.warning("Day has already selected as Office", { autoClose: 1000 });
+      return true;
+    }
+
     return false;
   } 
 
-  const addedAsEventBefore = (date) => {
-    for(let i=0;i<dates.length;i++){
-      if(date===dates[i].date){
+  addedAsEventBefore(date) {
+    for (let item of this.dates) {
+      if (item.date === date && item.title !== 'Pending') {
         return true;
       }
     }
+
     return false;
   }
-  const getOutOfOfficeDayData = () => {
-    let serviceCaller = new ServiceCaller();
-    OutOfOfficeDayService.getOutOfOfficeDays(serviceCaller, '')
+
+  handlePendingDate(date) {
+    if (this.addedAsEventBefore(date)) {
+      return;
+    }
+
+    this.setDates([...this.dates, {
+      title: 'Pending',
+      date: date,
+      color:'#A593B4'
+    }]);
+  }
+
+  handleDateClick(arg) { 
+    if(this.isDateValid(arg.dateStr) && !this.isDateSelected(arg.dateStr) && this.fullMonthDates.includes(arg.dateStr)){
+      this.selectedDaysList.push(arg.dateStr);
+      this.handlePendingDate(arg.dateStr);
+    }
+  }
+
+  deleteOODEvent(eventId) {
+    OutOfOfficeDayService.deleteOutOfOfficeDay(this.serviceCaller, {ids: [eventId]})
     .then((res) => {
-      console.log(res)
-      init(res);
+      if (res.status === 200) {
+        this.getOutOfOfficeDayData();
+        this.setFullMonthDates(this.getDaysInMonth(this.month, this.year));
+        toast.success("Event deleted successfully", { autoClose: 1000 });
+        return true
+      } else if (res.status === 403) {
+        toast.error("You don't have permission for delete event", { autoClose: 1000 });
+        return false
+      } else {
+        toast.error("Error occured while deleting", { autoClose: 1000 });
+        return false
+      }
     })
     .catch((error) => {
+      this.setError(error);
+      this.setIsLoaded(true);
       console.log(error)
     })
   }
 
-  const handleDateClick = (arg) => { 
-      if(isDateValid(arg.dateStr) && !isDateSelected(arg.dateStr) && fullMonthDates.includes(arg.dateStr)){
-        selectedDaysList.push(arg.dateStr)}
-    console.log("Selected Items: ", selectedDaysList);
-  }
-
-  const handleEventClick = (clickInfo) => {
+  handleEventClick(clickInfo) {
     const date = new Date(String((clickInfo.event.start)).slice(0,15))
     var dateNew = new Date(String((clickInfo.event.start)))
     dateNew.setDate(dateNew.getDate() + 1);
-    var resultDate = dateNew.toISOString().split('T')[0];
-    console.log(resultDate);
-    if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) { 
-      clickInfo.event.remove() //just removes from calendar, not from the array
+    const resultDate = dateNew.toISOString().split('T')[0];
+    if (confirm(`Are you sure you want to delete the event '${clickInfo.event.title}'`)) {
+      if (clickInfo.event.id === "") {
+        if (clickInfo.event.title === 'Pending') {
+          this.setSelectedDaysList(this.selectedDaysList.filter(item => item !== resultDate));
+        } else if (clickInfo.event.title === 'WFH') {
+          this.setWfhList(this.wfhList.filter(item => item !== resultDate));
+        } else if (clickInfo.event.title === 'Office') {
+          this.setOfficeList(this.officeList.filter(item => item !== resultDate));
+        }
+
+        this.setDates(this.dates.filter(item => item.date !== resultDate));
+
+      } else {
+        if (!this.deleteOODEvent(clickInfo.event.id)) return;
+      }
+
+      clickInfo.event.remove()
     } 
   }
 
-  useEffect(() => {
-    const serviceCaller = new ServiceCaller();
-    JWTUtil.validateStorage(serviceCaller)
-    .then((res) => {
-      if (!res) {
-        navigate('/', { replace: true });
-        return
-      }
-      getOutOfOfficeDayData();
-      setFullMonthDates(getDaysInMonth(month, year));
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-  }, [])
+  handleOfficeDay(){
+    let days=[];
 
-  const init = (res) => {
-    let days = [];
-    let officeDays = [];
-      for (let i = 0; i < res.length; i++) {
+    for (let i = 0; i < this.selectedDaysList.length; i++) {
+      if(!this.addedAsEventBefore(this.selectedDaysList[i])){
         days.push(
-              {
-                  title: res[i].displayName,
-                  date: res[i].date,
-                  color:'#4BB492'
-              }
-          );
-        officeDays.push(res[i].date);
-      }
-      setDates(days);
-      setOutOfOfficeDayList(officeDays);
-  }
-  const handleOfficeDay = () => {
-    let days=[];
-    for (let i = 0; i < selectedDaysList.length; i++) {
-      if(!addedAsEventBefore(selectedDaysList[i])){
-      days.push(
-            {
-                title: 'Office',
-                date: selectedDaysList[i], 
-                color:'#50AEE0'
-            }
+          {
+            title: 'Office',
+            date: this.selectedDaysList[i], 
+            color:'#50AEE0'
+          }
         );
-        officeList.push(selectedDaysList[i]);
+
+        this.officeList.push(this.selectedDaysList[i]);
     }}
-    setDates([...dates, ...days]);
-    console.log("Office: ", officeList);
+
+    this.dates = this.dates.filter(item => item.title != 'Pending')
+    this.setDates([...this.dates, ...days]);
+    this.setSelectedDaysList([]);
   }
 
-  const handleWFHDay = () => {
+  handleWFHDay() {
     let days=[];
-    for (let i = 0; i < selectedDaysList.length; i++) {
-      if(!addedAsEventBefore(selectedDaysList[i])){
-      days.push(
-            {
-                title: 'WFH',
-                date: selectedDaysList[i], 
-                color:'#FE795C'
-            }
+
+    for (let i = 0; i < this.selectedDaysList.length; i++) {
+      if(!this.addedAsEventBefore(this.selectedDaysList[i])){
+        days.push(
+          {
+            title: 'WFH',
+            date: this.selectedDaysList[i], 
+            color:'#FE795C'
+          }
         );
-        wfhList.push(selectedDaysList[i]);
+
+        this.wfhList.push(this.selectedDaysList[i]);
     }}
-    setDates([...dates, ...days]);
-    console.log("WFH: ", wfhList)
+
+    this.dates = this.dates.filter(item => item.title != 'Pending')
+    this.setDates([...this.dates, ...days]);
+    this.setSelectedDaysList([]);
   }
-  
-  const handleAllDay = (option) => {
+
+  handleAllDay(option) {
     let days=[];
-    for (let i = 0; i < fullMonthDates.length; i++) {
-      if(!addedAsEventBefore(fullMonthDates[i])){
-      days.push(
+
+    for (let i = 0; i < this.fullMonthDates.length; i++) {
+      if(!this.addedAsEventBefore(this.fullMonthDates[i])){
+        days.push(
           {
             title:  option === 'Office' ? 'Office' : 'WFH',
-            date: fullMonthDates[i], 
+            date: this.fullMonthDates[i], 
             color: option === 'Office' ? '#50AEE0' : '#FE795C'
           }
         );
-        option === 'Office' ? officeList.push(fullMonthDates[i]) : wfhList.push(fullMonthDates[i]);
+
+        option === 'Office' ? this.officeList.push(this.fullMonthDates[i]) : this.wfhList.push(this.fullMonthDates[i]);
     }}
-    setDates([...dates, ...days]);
+
+    this.dates = this.dates.filter(item => item.title != 'Pending')
+    this.setDates([...this.dates, ...days]);
+    this.setSelectedDaysList([]);
   }
-  function renderEventContent(eventInfo) {
+
+  handleClearAll() {
+    this.setDates([]);
+    this.setOfficeList([]);
+    this.setWfhList([]);
+    this.setSelectedDaysList([]);
+  }
+
+  getDaysInMonth(month, year) {
+    let monthValue=month
+    month--; 
+    var date = new Date(year, month, 1);
+    var days = [];
+    while (date.getMonth() === month) {
+      var tmpDate = new Date(date);            
+      var weekDay = tmpDate.getDay();
+      var day = tmpDate.getDate();
+      if (weekDay%6) {
+        if(monthValue<10){
+          if(day<10){
+            days.push(year + "-" + "0" + monthValue + "-" + "0" + day);
+          }else{
+            days.push(year + "-" + "0" + monthValue + "-" + day);
+          }
+        }
+        else{
+          if(day<10){
+            days.push(year + "-" + monthValue + "-" + "0" + day);
+          }else{
+            days.push(year + "-" + monthValue + "-" + day);
+          }
+        }
+      }
+
+      date.setDate(date.getDate() + 1);
+
+    }
+
+    return days;
+  }
+
+  saveSchedule() {
+    ScheduleService.addSchedule(this.serviceCaller, {
+      userId: sessionStorage.getItem("userId"),
+      officeDay: this.officeList.length,
+      workFromHome: this.wfhList.length,
+      vacation: this.vacation,
+      report: 100,
+      totalDay: this.fullMonthDates.length, // - out of office day count - vacation
+      dateMonth: this.getMonthName(this.month),
+      dateYear: this.year
+    })
+    .then((res) => {
+      this.setIsLoaded(true)
+      this.setRefresh(true);
+      console.log(res);
+    })
+    .catch((error) => {
+      this.setIsLoaded(true);
+      this.setError(error);
+      console.log(error)
+    })
+  }
+
+  saveCalendar() {
+    CalendarService.addCalendar(this.serviceCaller, {
+      userId: sessionStorage.getItem("userId"),
+      dateMonth: this.getMonthName(this.month),
+      dateYear: this.year,
+      days: this.officeList.length === 0 ? null : this.officeList.toString()
+    })
+    .then((res) => {
+      this.setIsLoaded(true);
+      this.setRefresh(true);
+      console.log(res);
+    })
+    .catch((error) => {
+      this.setIsLoaded(true);
+      this.setError(error);
+      console.log(error)
+    })
+  }
+
+  renderEventContent(eventInfo) {
     return (
-        <div style={{ backgroundColor: eventInfo.event.customColor}}>
-            <b>{eventInfo.timeText}</b>
-            <i> {eventInfo.event.title}</i>
-        </div>
+      <div style={{ backgroundColor: eventInfo.event.customColor}}>
+        <b>{eventInfo.timeText}</b>
+        <i> {eventInfo.event.title}</i>
+      </div>
     )
-  } 
+  }
+
+  render() {
+    if (this.error) {
+      return <div> Error !!!</div>;
+    } else if (!this.isLoaded) {
+      return <div> Loading... </div>;
+    }
+
     return (
-        <div className="card card-calendar" style={{width:1000, marginLeft:120}}>
-          <Button variant="contained" onClick={()=> handleOfficeDay()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set as Office</Button>
-          <Button variant="contained" onClick={()=> handleWFHDay()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set as WFH</Button>
-          <Button variant="contained" onClick={()=> handleAllDay('Office')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as Office</Button>
-          <Button variant="contained" onClick={()=> handleAllDay('WFH')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as WFH</Button>
-          <Button variant="contained" onClick={()=> {saveSchedule(); saveCalendar();}} style={{marginLeft:370, backgroundColor:"#9E9E9E"}}>Save</Button>
-            <div className="card-body p-3" style={{backgroundColor:"white", padding:25}}>
-                <FullCalendar
-                    headerToolbar={{
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: ''
-                    }}
-                    eventContent={renderEventContent}
-                    allDayClassNames="calendar"
-                    dateClick={handleDateClick}
-                    plugins={[dayGridPlugin, interactionPlugin]}
-                    initialView="dayGridMonth"
-                    weekends={false}
-                    events={dates}
-                    eventClick={handleEventClick}
-                    selectable={true}
-                    contentHeight={700}
-                />
-            </div>
+      <div className="card card-calendar" style={{width:1000, marginLeft:120}}>
+        <Button variant="contained" onClick={()=> this.handleOfficeDay()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set as Office</Button>
+        <Button variant="contained" onClick={()=> this.handleWFHDay()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set as WFH</Button>
+        <Button variant="contained" onClick={()=> this.handleAllDay('Office')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as Office</Button>
+        <Button variant="contained" onClick={()=> this.handleAllDay('WFH')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as WFH</Button>
+        <Button variant="contained" onClick={()=> this.handleClearAll()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Clear All</Button>
+        <Button variant="contained" onClick={()=> {this.saveSchedule(); this.saveCalendar();}} style={{marginLeft:260, backgroundColor:"#9E9E9E"}}>Save</Button>
+        <div className="card-body p-3" style={{backgroundColor:"white", padding:25}}>
+          <FullCalendar
+            headerToolbar={{
+              left: 'prev,next today',
+              center: 'title',
+              right: ''
+            }}
+            eventContent={this.renderEventContent}
+            allDayClassNames="calendar"
+            dateClick={this.handleDateClick.bind(this)}
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            weekends={false}
+            events={this.dates}
+            eventClick={this.handleEventClick.bind(this)}
+            selectable={true}
+            contentHeight={700}
+          />
         </div>
+      </div>
     );
+  }
+} 
+
+function Calendar () {
+  const navigate = useNavigate();
+  const [selectedDaysList, setSelectedDaysList] = useState([])
+  const [wfhList, setWfhList] = useState([]);
+  const [officeList, setOfficeList] = useState([]);
+  const [fullMonthDates, setFullMonthDates] = useState([])
+  const [dates, setDates] = useState([]);
+  const [outOfOfficeDayList, setOutOfOfficeDayList] = useState([]);
+
+  const [isLoaded, setIsLoaded]= useState(false);
+  const [error, setError] = useState(null);
+  const [refresh, setRefresh] = useState(false);
+
+  const MyCalendarHelper = new MyCalendarPageHelper();
+  const setterFunctions = { 
+    navigate, setSelectedDaysList, 
+    setWfhList, setOfficeList, 
+    setFullMonthDates, setDates, 
+    setOutOfOfficeDayList,
+    setIsLoaded, setError, setRefresh 
+  }
+  const parameters = { selectedDaysList, wfhList, 
+    officeList, fullMonthDates, 
+    dates, outOfOfficeDayList,
+    isLoaded, error, refresh
+  }
+  MyCalendarHelper.initSetterFunctions(setterFunctions);
+  MyCalendarHelper.initParameters(parameters);
+
+  useEffect(() => {
+    MyCalendarHelper.effectHelper()
+  }, [refresh])
+
+
+  return MyCalendarHelper.render()
 }
 export default Calendar;

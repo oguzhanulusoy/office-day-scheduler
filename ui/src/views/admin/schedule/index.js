@@ -1,8 +1,6 @@
 import MUIDataTable from "mui-datatables";
-import { createTheme, ThemeProvider, Button, TextField, Modal, Box, Divider } from "@mui/material";
-import EditIcon from '@mui/icons-material/Edit';
+import { createTheme, ThemeProvider, Divider } from "@mui/material";
 import { useState, useEffect } from "react";
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ScheduleService from 'services/schedule/ScheduleService';
 import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from 'utils/jwtUtil';
@@ -17,22 +15,55 @@ class SchedulePageHelper {
     this.config = SchedulePageConfig.schedulePageColumns;
   }
 
-  effectHelper({ navigate, setIsLoaded, setRows, setError, setRefresh }) {
+  initSetterFunctions({ navigate, setIsLoaded, setRows, setError, setRefresh, setSelectedIdList }) {
+    this.navigate = navigate;
+    this.setIsLoaded = setIsLoaded;
+    this.setRows = setRows;
+    this.setError = setError;
+    this.setRefresh = setRefresh;
+    this.setSelectedIdList = setSelectedIdList;
+  }
+
+  initParameters(parameters) {
+    this.isLoaded = parameters.isLoaded;
+    this.error = parameters.error;
+    this.rows = parameters.rows;
+    this.refresh = parameters.refresh;
+    this.selectedIdList = parameters.selectedIdList;
+
+    this.prepareOptions();
+  }
+
+  prepareOptions() {
+    this.options = {
+      filterType: 'dropdown',
+      onRowSelectionChange: (currentSelect, allSelected) => {           
+        const result = allSelected.map(item => { return this.rows.at(item.index) });
+        const selectedIds = result.map(item => {
+            return item.id;
+        });
+        this.setSelectedIdList(selectedIds);
+      },
+      onRowsDelete:()=>{this.handleDelete()},
+    }
+  }
+
+  effectHelper() {
     JWTUtil.validateStorage(this.serviceCaller)
     .then(res => {
       if(!res) {
-        navigate('/', { replace: true });
+        this.navigate('/', { replace: true });
         return
       }
 
-      if(!hasPermission(navigate)) return
+      if(!hasPermission(this.navigate)) return
 
-      this.getScheduleData(setIsLoaded, setRows, setError, setRefresh);
+      this.getScheduleData();
     })
     .catch(error => {
       console.log(error)
-      setIsLoaded(true);
-      setError(error);
+      this.setIsLoaded(true);
+      this.setError(error);
     })
   }
 
@@ -52,43 +83,43 @@ class SchedulePageHelper {
     return this.config;
   }
 
-  getScheduleData(setIsLoaded, setRows, setError, setRefresh) {
+  getScheduleData() {
     ScheduleService.getSchedules(this.serviceCaller, '')
     .then(res => {
-      setIsLoaded(true);
-      setRows(res);
+      this.setIsLoaded(true);
+      this.setRows(res);
     })
     .catch(error => {
       console.log(error)
-      setIsLoaded(true);
-      setError(error);
+      this.setIsLoaded(true);
+      this.setError(error);
     })
 
-    setRefresh(false);
+    this.setRefresh(false);
   }
 
-  handleDelete({ selectedIdList, setRefresh, setError }) {
-    ScheduleService.deleteSchedule(this.serviceCaller, {ids: selectedIdList})
+  handleDelete() {
+    ScheduleService.deleteSchedule(this.serviceCaller, { ids: this.selectedIdList })
     .then(res => {
-      setRefresh(true);
+      this.setRefresh(true);
     })
     .catch(error => {
       console.log(error)
-      setError(error);
+      this.setError(error);
     })
   }
 
-  getComponent({ error, isLoaded, rows, options }) {
-    if(error) {
+  getComponent() {
+    if(this.error) {
       return <div> Error !!!</div>;
-    } else if(!isLoaded) {
+    } else if(!this.isLoaded) {
       return <div> Loading... </div>;
     } else {
       return (
         <ThemeProvider theme={this.getMuiTheme()}>
           <h2>Schedule List</h2>
         <Divider/>
-          <MUIDataTable columns={this.getScheduleColumns()} data={rows} options={options} />
+          <MUIDataTable columns={this.getScheduleColumns()} data={this.rows} options={this.options} />
         </ThemeProvider>
       );
     }
@@ -104,23 +135,15 @@ function SchedulePage() {
   const [selectedIdList, setSelectedIdList] = useState([]);
 
   const ScheduleHelper = new SchedulePageHelper();
+  ScheduleHelper.initSetterFunctions({ navigate, setIsLoaded, setRows, setError, setRefresh, setSelectedIdList });
 
-  const options = {
-    filterType: 'dropdown',
-    onRowSelectionChange: (currentSelect, allSelected) => {           
-      const result = allSelected.map(item => { return rows.at(item.index) });
-      const selectedIds = result.map(item => {
-           return item.id;
-      });
-      setSelectedIdList(selectedIds);
-    },
-    onRowsDelete:()=>{ScheduleHelper.handleDelete({ selectedIdList, setRefresh, setError })},
-  }
+  const parameters = { isLoaded, error, rows, refresh, selectedIdList };
+  ScheduleHelper.initParameters(parameters);
 
   useEffect(() => {
-    ScheduleHelper.effectHelper({ navigate, setIsLoaded, setRows, setError, setRefresh });
+    ScheduleHelper.effectHelper();
   }, [refresh])
 
-  return ScheduleHelper.getComponent({ error, isLoaded, rows, options });
+  return ScheduleHelper.getComponent();
 }
 export default SchedulePage;

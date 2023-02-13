@@ -8,29 +8,62 @@ import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import CalendarPageConfig from 'configs/calendarPageConfig.js';
 
-class CalenderPageHelper {
+class CalendarPageHelper {
   constructor() {
     this.serviceCaller = new ServiceCaller();
 
     this.config = CalendarPageConfig.calendarPageColumns;
   }
 
-  effectHelper({ navigate, setIsLoaded, setRows, setError, setRefresh }) {
+  initSetterFunctions({ navigate, setIsLoaded, setRows, setError, setRefresh, setSelectedIdList }) {
+    this.navigate = navigate;
+    this.setIsLoaded = setIsLoaded;
+    this.setRows = setRows;
+    this.setError = setError;
+    this.setRefresh = setRefresh;
+    this.setSelectedIdList = setSelectedIdList;
+  }
+
+  initParameters(parameters) {
+    this.isLoaded = parameters.isLoaded;
+    this.error = parameters.error;
+    this.rows = parameters.rows;
+    this.refresh = parameters.refresh;
+    this.selectedIdList = parameters.selectedIdList;
+
+    this.prepareOptions();
+  }
+
+  prepareOptions() {
+    this.options = {
+      filterType: 'dropdown',
+      onRowSelectionChange: (currentSelect, allSelected) => {           
+        const result = allSelected.map(item => { return this.rows.at(item.index) });
+        const selectedIds = result.map(item => {
+             return item.id;
+        });
+        this.setSelectedIdList(selectedIds);
+      },
+      onRowsDelete:()=>{this.handleDelete()},
+    }
+  }
+
+  effectHelper() {
     JWTUtil.validateStorage(this.serviceCaller)
     .then(res => {
       if(!res) {
-        navigate('/', { replace: true });
+        this.navigate('/', { replace: true });
         return
       }
 
-      if(!hasPermission(navigate)) return
+      if(!hasPermission(this.navigate)) return
 
-      this.getCalendarData(setIsLoaded, setRows, setError, setRefresh);
+      this.getCalendarData();
     })
     .catch(error => {
       console.log(error)
-      setIsLoaded(true);
-      setError(error);
+      this.setIsLoaded(true);
+      this.setError(error);
     })
   }
 
@@ -46,45 +79,45 @@ class CalenderPageHelper {
     });
   }
 
-  getCalenderColumns() {
+  getCalendarColumns() {
     return this.config;
   }
 
-  getCalendarData(setIsLoaded, setRows, setError, setRefresh) {
+  getCalendarData() {
     CalendarService.getCalendars(this.serviceCaller, '')
     .then(res => {
-      setIsLoaded(true);
-      setRows(res);
+      this.setIsLoaded(true);
+      this.setRows(res);
     })
     .catch(error => {
-      setError(error);
-      setIsLoaded(true);
+      this.setError(error);
+      this.setIsLoaded(true);
       console.log(error)
     })
 
-    setRefresh(false);
+    this.setRefresh(false);
   }
 
-  handleDelete({ selectedIdList, setRefresh, setError }) {    
-    CalendarService.deleteCalendar(this.serviceCaller, {ids: selectedIdList})
+  handleDelete() {    
+    CalendarService.deleteCalendar(this.serviceCaller, {ids: this.selectedIdList})
     .then(res => {
-      setRefresh(true);
+      this.setRefresh(true);
     })
     .catch(error => {
-      setError(error);
+      this.setError(error);
     })
   }
 
-  getComponent({ error, isLoaded, rows, options }) {
-    if(error) {
+  getComponent() {
+    if(this.error) {
       return <div> Error !!!</div>;
-    } else if(!isLoaded) {
+    } else if(!this.isLoaded) {
       return <div> Loading... </div>;} 
     else {
       return (
         <ThemeProvider theme={this.getMuiTheme()}>
           <h2>Calendar List</h2>
-          <MUIDataTable columns={this.getCalenderColumns()} data={rows} options={options} />
+          <MUIDataTable columns={this.getCalendarColumns()} data={this.rows} options={this.options} />
         </ThemeProvider>
       );
     }
@@ -99,25 +132,18 @@ function CalendarPage() {
   const [rows, setRows] = useState([]);
   const [selectedIdList, setSelectedIdList] = useState([]);
 
-  const CalenderHelper = new CalenderPageHelper();
+  const CalendarHelper = new CalendarPageHelper();
+  CalendarHelper.initSetterFunctions({ navigate, setIsLoaded, setRows, setError, setRefresh, setSelectedIdList });
 
-  const options = {
-    filterType: 'dropdown',
-    onRowSelectionChange: (currentSelect, allSelected) => {           
-      const result = allSelected.map(item => { return rows.at(item.index) });
-      const selectedIds = result.map(item => {
-           return item.id;
-      });
-      setSelectedIdList(selectedIds);
-    },
-    onRowsDelete:()=>{CalenderHelper.handleDelete({ selectedIdList, setRefresh, setError })},
-  }
+  const parameters = { isLoaded, error, rows, refresh, selectedIdList };
+  CalendarHelper.initParameters(parameters);
 
   useEffect(() => {
-    CalenderHelper.effectHelper({ navigate, setIsLoaded, setRows, setError, setRefresh });
+    CalendarHelper.effectHelper();
   }, [refresh])
 
 
-  return CalenderHelper.getComponent({ error, isLoaded, rows, options });
+  return CalendarHelper.getComponent();
 }
+
 export default CalendarPage;
