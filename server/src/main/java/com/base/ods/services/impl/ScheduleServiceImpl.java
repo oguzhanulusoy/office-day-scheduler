@@ -6,6 +6,7 @@ import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.ScheduleEntityToDTOMapper;
 import com.base.ods.mapper.UserEntityToDTOMapper;
 import com.base.ods.repository.ScheduleRepository;
+import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IScheduleService;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.ScheduleCreateRequestDTO;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +34,7 @@ public class ScheduleServiceImpl implements IScheduleService {
     private IUserService userService;
     private ScheduleEntityToDTOMapper mapper;
     private UserEntityToDTOMapper userMapper;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     public List<ScheduleResponseDTO> getAllSchedules(Pageable pageable) {
@@ -68,8 +71,13 @@ public class ScheduleServiceImpl implements IScheduleService {
     }
 
     @Override
-    public ScheduleResponseDTO updateSchedule(ScheduleUpdateRequestDTO scheduleUpdateRequestDTO) {
+    public ScheduleResponseDTO updateSchedule(Map<String, String> headers, ScheduleUpdateRequestDTO scheduleUpdateRequestDTO) {
         Schedule schedule = scheduleRepository.findById(scheduleUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.SCHEDULE_NOT_FOUND + scheduleUpdateRequestDTO.getId()));
+        
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), schedule.getUser().getId())) {
+            return null;
+        }
+
         UserResponseDTO userResponseDTO = userService.getUserById(schedule.getUser().getId());
         User user = userMapper.responseDTOToEntity(userResponseDTO);
         Schedule toUpdate = mapper.toEntity(scheduleUpdateRequestDTO);

@@ -53,6 +53,12 @@ public class SecurityConfig {
         "/schedule/user",
     };
 
+    private static final String[] EMPLOYEE_PUT_AUTH_LIST = {
+        "/user",
+        "/schedule",
+        "/calendar",
+    };
+
     public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationEntryPoint handler) {
         this.userDetailsService = userDetailsService;
         this.handler = handler;
@@ -103,6 +109,7 @@ public class SecurityConfig {
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers(HttpMethod.GET, EMPLOYEE_GET_AUTH_LIST).authenticated()
                 .antMatchers(HttpMethod.POST, EMPLOYEE_POST_AUTH_LIST).authenticated()
+                .antMatchers(HttpMethod.PUT, EMPLOYEE_PUT_AUTH_LIST).authenticated()
                 .antMatchers(ADMIN_AUTH_LIST).hasAnyAuthority("MANAGER")
                 .anyRequest().authenticated();
 

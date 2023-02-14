@@ -16,13 +16,10 @@ import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-import java.io.Console;
 import java.util.List;
 import java.util.Map;
 
@@ -66,17 +63,43 @@ public class ScheduleController {
     }
 
     @PostMapping
-    public ResponseEntity<ScheduleResponse> createSchedule(@Valid @RequestBody ScheduleCreateRequest scheduleCreateRequest) {
+    public ResponseEntity<ScheduleResponse> createSchedule(@RequestHeader Map<String, String> headers, @Valid @RequestBody ScheduleCreateRequest scheduleCreateRequest) {
         ScheduleCreateRequestDTO requestDTO = mapper.toDTO(scheduleCreateRequest);
+
+        ScheduleGetFromUserIdRequest scheduleGetFromUserIdRequest = new ScheduleGetFromUserIdRequest();
+        scheduleGetFromUserIdRequest.setUserId(scheduleCreateRequest.getUserId());
+        scheduleGetFromUserIdRequest.setDateMonth(scheduleCreateRequest.getDateMonth());
+        scheduleGetFromUserIdRequest.setDateYear(scheduleCreateRequest.getDateYear());
+        ScheduleResponse isExist = getUserActiveSchedule(headers, scheduleGetFromUserIdRequest).getBody();
+
+        if (isExist != null) {
+            ScheduleUpdateRequest scheduleUpdateRequest = new ScheduleUpdateRequest();
+            scheduleUpdateRequest.setId(isExist.getId());
+            scheduleUpdateRequest.setOfficeDay(scheduleCreateRequest.getOfficeDay());
+            scheduleUpdateRequest.setVacation(scheduleCreateRequest.getVacation());
+            scheduleUpdateRequest.setWorkFromHome(scheduleCreateRequest.getWorkFromHome());
+            scheduleUpdateRequest.setTotalDay(scheduleCreateRequest.getTotalDay());
+            scheduleUpdateRequest.setReport(scheduleCreateRequest.getReport());
+            scheduleUpdateRequest.setDateMonth(scheduleCreateRequest.getDateMonth());
+            scheduleUpdateRequest.setDateYear(scheduleCreateRequest.getDateYear());
+            ScheduleResponse result = updateSchedule(headers, scheduleUpdateRequest).getBody();
+            return ResponseEntity.ok(result);
+        }
+
         ScheduleResponseDTO responseDTO = scheduleService.createSchedule(requestDTO);
         ScheduleResponse result = mapper.toResponse(responseDTO);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping
-    public ResponseEntity<ScheduleResponse> updateSchedule(@Valid @RequestBody ScheduleUpdateRequest scheduleUpdateRequest) {
+    public ResponseEntity<ScheduleResponse> updateSchedule(@RequestHeader Map<String, String> headers, @Valid @RequestBody ScheduleUpdateRequest scheduleUpdateRequest) {
         ScheduleUpdateRequestDTO requestDTO = mapper.toDTO(scheduleUpdateRequest);
-        ScheduleResponseDTO responseDTO = scheduleService.updateSchedule(requestDTO);
+        ScheduleResponseDTO responseDTO = scheduleService.updateSchedule(headers, requestDTO);
+
+        if (responseDTO == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         ScheduleResponse result = mapper.toResponse(responseDTO);
         return ResponseEntity.ok(result);
     }

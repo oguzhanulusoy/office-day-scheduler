@@ -62,17 +62,40 @@ public class CalendarController {
     }
 
     @PostMapping
-    public ResponseEntity<CalendarResponse> createCalendar(@Valid @RequestBody CalendarCreateRequest calendarCreateRequest) {
+    public ResponseEntity<CalendarResponse> createCalendar(@RequestHeader Map<String, String> headers, @Valid @RequestBody CalendarCreateRequest calendarCreateRequest) {
         CalendarCreateRequestDTO requestDTO = mapper.toDTO(calendarCreateRequest);
+
+        CalendarGetFromUserIdRequest userActiveCalendarRequest = new CalendarGetFromUserIdRequest();
+        userActiveCalendarRequest.setUserId(calendarCreateRequest.getUserId());
+        userActiveCalendarRequest.setDateMonth(calendarCreateRequest.getDateMonth());
+        userActiveCalendarRequest.setDateYear(calendarCreateRequest.getDateYear());
+        CalendarResponse isExist = getActiveCalendarByUserId(headers, userActiveCalendarRequest).getBody();
+        
+        if (isExist != null) {
+            CalendarUpdateRequest calendarUpdateRequest = new CalendarUpdateRequest();
+            calendarUpdateRequest.setId(isExist.getId());
+            calendarUpdateRequest.setDateMonth(calendarCreateRequest.getDateMonth());
+            calendarUpdateRequest.setDateYear(calendarCreateRequest.getDateYear());
+            calendarUpdateRequest.setDays(calendarCreateRequest.getDays());
+            
+            CalendarResponse result = updateCalendar(headers, calendarUpdateRequest).getBody();
+            return ResponseEntity.ok(result);
+        }
+
         CalendarResponseDTO responseDTO = calendarService.createCalendar(requestDTO);
         CalendarResponse result = mapper.toResponse(responseDTO);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping
-    public ResponseEntity<CalendarResponse> updateCalendar(@Valid @RequestBody CalendarUpdateRequest calendarUpdateRequest) {
+    public ResponseEntity<CalendarResponse> updateCalendar(@RequestHeader Map<String, String> headers, @Valid @RequestBody CalendarUpdateRequest calendarUpdateRequest) {
         CalendarUpdateRequestDTO requestDTO = mapper.toDTO(calendarUpdateRequest);
-        CalendarResponseDTO responseDTO = calendarService.updateCalendar(requestDTO);
+        CalendarResponseDTO responseDTO = calendarService.updateCalendar(headers, requestDTO);
+
+        if (responseDTO == null) {
+            return ResponseEntity.status(401).build();
+        }
+
         CalendarResponse result = mapper.toResponse(responseDTO);
         return ResponseEntity.ok(result);
     }

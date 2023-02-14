@@ -8,6 +8,11 @@ class CalendarService {
         return await serviceCaller.get("/calendar", queryParams, undefined)
     }
 
+    async getActiveCalendar(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.post("/calendar/user", undefined, headers, requestBody)
+    }
+
     async updateCalendar(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
         return await serviceCaller.update("/calendar", undefined, headers, requestBody)

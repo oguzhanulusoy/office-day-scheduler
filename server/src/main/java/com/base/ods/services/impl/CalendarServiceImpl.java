@@ -6,6 +6,7 @@ import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.CalendarEntityToDTOMapper;
 import com.base.ods.mapper.UserEntityToDTOMapper;
 import com.base.ods.repository.CalendarRepository;
+import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.ICalendarService;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.CalendarCreateRequestDTO;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +34,7 @@ public class CalendarServiceImpl implements ICalendarService {
     private IUserService userService;
     private CalendarEntityToDTOMapper mapper;
     private UserEntityToDTOMapper userMapper;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     public List<CalendarResponseDTO> getAllCalendars(Pageable pageable) {
@@ -85,8 +88,13 @@ public class CalendarServiceImpl implements ICalendarService {
     }
 
     @Override
-    public CalendarResponseDTO updateCalendar(CalendarUpdateRequestDTO calendarUpdateRequestDTO) {
+    public CalendarResponseDTO updateCalendar(Map<String, String> headers, CalendarUpdateRequestDTO calendarUpdateRequestDTO) {
         Calendar calendar = calendarRepository.findById(calendarUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.CALENDAR_NOT_FOUND + calendarUpdateRequestDTO.getId()));
+        
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), calendar.getUser().getId())) {
+            return null;
+        }
+        
         UserResponseDTO userResponseDTO = userService.getUserById(calendar.getUser().getId());
         User user = userMapper.responseDTOToEntity(userResponseDTO);
         Calendar toUpdate = mapper.toEntity(calendarUpdateRequestDTO);

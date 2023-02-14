@@ -22,9 +22,13 @@ class MyCalendarPageHelper {
     this.vacation = 2;
   }
 
+  refreshPage() {
+    window.location.reload(false);
+  }
+
   initSetterFunctions({ navigate, setSelectedDaysList, setWfhList, 
     setOfficeList, setFullMonthDates, setDates, 
-    setOutOfOfficeDayList, setIsLoaded, setError, setRefresh }) {
+    setOutOfOfficeDayList, setIsLoaded, setError }) {
 
     this.navigate = navigate;
     this.setSelectedDaysList = setSelectedDaysList;
@@ -35,7 +39,6 @@ class MyCalendarPageHelper {
     this.setOutOfOfficeDayList = setOutOfOfficeDayList;
     this.setIsLoaded = setIsLoaded;
     this.setError = setError;
-    this.setRefresh = setRefresh;
   }
 
   initParameters(parameters) {
@@ -47,7 +50,6 @@ class MyCalendarPageHelper {
     this.outOfOfficeDayList = parameters.outOfOfficeDayList;
     this.isLoaded = parameters.isLoaded;
     this.error = parameters.error;
-    this.refresh = parameters.refresh;
   }
 
   effectHelper() {
@@ -57,9 +59,15 @@ class MyCalendarPageHelper {
         this.navigate('/', { replace: true });
         return
       }
+
       this.getOutOfOfficeDayData();
       this.setFullMonthDates(this.getDaysInMonth(this.month, this.year));
-      this.setRefresh(true);
+      this.fullMonthDates = this.getDaysInMonth(this.month, this.year);
+      
+
+      setTimeout(() => {
+        this.getActiveCalendar();
+      }, 100)
     })
     .catch((error) => {
       console.log(error)
@@ -82,8 +90,55 @@ class MyCalendarPageHelper {
       );
       officeDays.push(res[i].date);
     }
+
+    this.dates = days;
     this.setDates(days);
     this.setOutOfOfficeDayList(officeDays);
+  }
+
+  getActiveSchedule() {
+    ScheduleService.getActiveSchedule(this.serviceCaller, {
+      userId: parseInt(sessionStorage.getItem('userId')),
+      dateMonth: this.getMonthName(this.month),
+      dateYear: this.year.toString()
+    })
+    .then((res) => {
+      
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
+
+  getActiveCalendar() {
+    CalendarService.getActiveCalendar(this.serviceCaller, {
+      userId: parseInt(sessionStorage.getItem('userId')),
+      dateMonth: this.getMonthName(this.month),
+      dateYear: this.year.toString()
+    })
+    .then((res) => {
+      if (res !== undefined && res !== null) {
+        const days = res.days.split(',');
+        this.fillCalendar(days);
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+  }
+
+  fillCalendar(officeDayList) {
+    for (let day of officeDayList) {
+      this.dates.push({
+        title: 'Office',
+        date: day,
+        color: '#50AEE0'
+      })
+    }
+
+    this.setDates(this.dates);
+    this.setOfficeList(officeDayList);
+    this.handleAllDay("WFH")
   }
 
   getOutOfOfficeDayData() {
@@ -97,8 +152,6 @@ class MyCalendarPageHelper {
       this.setIsLoaded(true);
       console.log(error)
     })
-
-    this.setRefresh(false);
   }
 
   getMonthName(monthNumber) {
@@ -254,18 +307,19 @@ class MyCalendarPageHelper {
   handleAllDay(option) {
     let days=[];
 
-    for (let i = 0; i < this.fullMonthDates.length; i++) {
-      if(!this.addedAsEventBefore(this.fullMonthDates[i])){
+    for (let day of this.fullMonthDates) {
+      if (!this.addedAsEventBefore(day)) {
         days.push(
           {
             title:  option === 'Office' ? 'Office' : 'WFH',
-            date: this.fullMonthDates[i], 
+            date: day, 
             color: option === 'Office' ? '#50AEE0' : '#FE795C'
           }
         );
 
-        option === 'Office' ? this.officeList.push(this.fullMonthDates[i]) : this.wfhList.push(this.fullMonthDates[i]);
-    }}
+        option === 'Office' ? this.officeList.push(day) : this.wfhList.push(day);
+      }
+    }
 
     this.dates = this.dates.filter(item => item.title != 'Pending')
     this.setDates([...this.dates, ...days]);
@@ -325,7 +379,6 @@ class MyCalendarPageHelper {
     })
     .then((res) => {
       this.setIsLoaded(true)
-      this.setRefresh(true);
       console.log(res);
     })
     .catch((error) => {
@@ -344,7 +397,6 @@ class MyCalendarPageHelper {
     })
     .then((res) => {
       this.setIsLoaded(true);
-      this.setRefresh(true);
       console.log(res);
     })
     .catch((error) => {
@@ -413,7 +465,6 @@ function Calendar () {
 
   const [isLoaded, setIsLoaded]= useState(false);
   const [error, setError] = useState(null);
-  const [refresh, setRefresh] = useState(false);
 
   const MyCalendarHelper = new MyCalendarPageHelper();
   const setterFunctions = { 
@@ -421,19 +472,21 @@ function Calendar () {
     setWfhList, setOfficeList, 
     setFullMonthDates, setDates, 
     setOutOfOfficeDayList,
-    setIsLoaded, setError, setRefresh 
+    setIsLoaded, setError 
   }
+
   const parameters = { selectedDaysList, wfhList, 
     officeList, fullMonthDates, 
     dates, outOfOfficeDayList,
-    isLoaded, error, refresh
+    isLoaded, error
   }
+
   MyCalendarHelper.initSetterFunctions(setterFunctions);
   MyCalendarHelper.initParameters(parameters);
 
   useEffect(() => {
     MyCalendarHelper.effectHelper()
-  }, [refresh])
+  }, [])
 
 
   return MyCalendarHelper.render()

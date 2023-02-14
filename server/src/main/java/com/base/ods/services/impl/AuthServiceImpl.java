@@ -34,7 +34,6 @@ public class AuthServiceImpl implements IAuthService {
             Authentication auth = authenticationManager.authenticate(authToken);
             SecurityContextHolder.getContext().setAuthentication(auth);
             String jwtToken = jwtTokenProvider.generateJwtToken(auth);
-            System.out.println(jwtTokenProvider.getRolesFromToken(jwtToken));
             User user = userService.getUserByEmail(loginRequest.getEmail());
             authResponse.setAccessToken("Bearer " + jwtToken);
             authResponse.setRefreshToken(refreshTokenService.createRefreshToken(user));

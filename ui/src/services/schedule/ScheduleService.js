@@ -8,6 +8,11 @@ class ScheduleService {
         return await serviceCaller.get("/schedule", queryParams, undefined)
     }
 
+    async getActiveSchedule(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.post("/schedule/user", undefined, headers, requestBody)
+    }
+
     async updateSchedule(serviceCaller, requestBody) {
         let headers= { 'Content-Type': 'application/json'};
         return await serviceCaller.update("/schedule", undefined, headers, requestBody)
