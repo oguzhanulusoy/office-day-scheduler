@@ -9,6 +9,7 @@ import com.base.ods.repository.CalendarRepository;
 import com.base.ods.services.ICalendarService;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.CalendarCreateRequestDTO;
+import com.base.ods.services.requests.CalendarFromUserIdDTO;
 import com.base.ods.services.requests.CalendarUpdateRequestDTO;
 import com.base.ods.services.responses.CalendarResponseDTO;
 import com.base.ods.services.responses.UserResponseDTO;
@@ -51,6 +52,21 @@ public class CalendarServiceImpl implements ICalendarService {
         if (responseDTO.getDays() != null) {
             responseDTO.setOfficeDay(responseDTO.getDays().split(",").length);
         }
+        return responseDTO;
+    }
+
+    @Override
+    public CalendarResponseDTO getActiveCalendarByUserId(CalendarFromUserIdDTO calendarFromUserIdDTO) {
+        Calendar calendar = calendarRepository.findActiveCalendarByUserIdAndDateYearAndDateMonth(calendarFromUserIdDTO.getUserId(), calendarFromUserIdDTO.getDateYear(), calendarFromUserIdDTO.getDateMonth());
+        if (calendar == null) {
+            return null;
+        }
+
+        CalendarResponseDTO responseDTO = mapper.toDTO(calendar);
+        if (responseDTO.getDays() != null) {
+            responseDTO.setOfficeDay(responseDTO.getDays().split(",").length);
+        }
+
         return responseDTO;
     }
 

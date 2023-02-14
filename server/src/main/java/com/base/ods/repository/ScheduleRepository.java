@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     void deleteByIdIn(List<Long> ids);
+
+    Schedule findActiveScheduleByUserIdAndDateYearAndDateMonth(Long userId, String dateYear, String dateMonth);
 }

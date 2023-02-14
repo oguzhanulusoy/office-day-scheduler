@@ -177,6 +177,7 @@ class MyCalendarPageHelper {
       }
     })
     .catch((error) => {
+      toast.error("Error occured while deleting", { autoClose: 1000 });
       this.setError(error);
       this.setIsLoaded(true);
       console.log(error)

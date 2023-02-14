@@ -49,6 +49,8 @@ public class SecurityConfig {
         "/schedule",
         "/outofofficeday",
         "/calendar",
+        "/calendar/user",
+        "/schedule/user",
     };
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationEntryPoint handler) {

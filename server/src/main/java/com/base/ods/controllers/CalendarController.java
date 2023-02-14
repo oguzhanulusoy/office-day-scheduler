@@ -3,10 +3,13 @@ package com.base.ods.controllers;
 
 import com.base.ods.controllers.requests.CalendarCreateRequest;
 import com.base.ods.controllers.requests.CalendarUpdateRequest;
+import com.base.ods.controllers.requests.CalendarGetFromUserIdRequest;
 import com.base.ods.controllers.responses.CalendarResponse;
 import com.base.ods.mapper.CalendarResponseToDTOMapper;
+import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.ICalendarService;
 import com.base.ods.services.requests.CalendarCreateRequestDTO;
+import com.base.ods.services.requests.CalendarFromUserIdDTO;
 import com.base.ods.services.requests.CalendarUpdateRequestDTO;
 import com.base.ods.services.responses.CalendarResponseDTO;
 import com.base.ods.util.IdWrapper;
@@ -17,12 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/calendar")
 @AllArgsConstructor
 public class CalendarController {
     private ICalendarService calendarService;
+    private JwtTokenProvider jwtTokenProvider;
     private CalendarResponseToDTOMapper mapper;
 
     @GetMapping
@@ -36,6 +41,23 @@ public class CalendarController {
     public ResponseEntity<CalendarResponse> getCalendarById(@PathVariable Long id) {
         CalendarResponseDTO calendarDTO = calendarService.getCalendarById(id);
         CalendarResponse result = mapper.toResponse(calendarDTO);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<CalendarResponse> getActiveCalendarByUserId(@RequestHeader Map<String, String> headers, @Valid @RequestBody CalendarGetFromUserIdRequest userActiveCalendarRequest) {
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), userActiveCalendarRequest.getUserId())) {
+            return ResponseEntity.status(401).build();
+        }
+
+        CalendarFromUserIdDTO requestDTO = mapper.toDTO(userActiveCalendarRequest);
+        CalendarResponseDTO responseDTO = calendarService.getActiveCalendarByUserId(requestDTO);
+
+        if (responseDTO == null) {
+            return ResponseEntity.status(404).build();
+        }
+        
+        CalendarResponse result = mapper.toResponse(responseDTO);
         return ResponseEntity.ok(result);
     }
 

@@ -6,6 +6,7 @@ import com.base.ods.controllers.requests.UserUpdateRequest;
 import com.base.ods.controllers.responses.UserResponse;
 import com.base.ods.enums.Status;
 import com.base.ods.mapper.UserResponseToDTOMapper;
+import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.UserCreateRequestDTO;
 import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
@@ -14,13 +15,12 @@ import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.data.domain.Pageable;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -28,6 +28,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class UserController {
     private IUserService userService;
+    private JwtTokenProvider jwtTokenProvider;
     private UserResponseToDTOMapper mapper;
 
     @GetMapping
@@ -38,7 +39,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@RequestHeader Map<String, String> headers, @PathVariable Long id) {
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), id)) {
+            return ResponseEntity.status(401).build();
+        }
+        
         UserResponseDTO userDTO = userService.getUserById(id);
         UserResponse result = mapper.toResponse(userDTO);
         return ResponseEntity.ok(result);

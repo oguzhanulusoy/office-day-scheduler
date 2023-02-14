@@ -77,4 +77,13 @@ public class JwtTokenProvider {
 
         return roles;
     }
+
+    public boolean hasPermission(String token, Long userId) {
+        List<GrantedAuthority> userRole = this.getRolesFromToken(token);
+        if (userRole.contains(new SimpleGrantedAuthority("MANAGER")))
+            return true;
+        else if (userRole.contains(new SimpleGrantedAuthority("USER")) && this.getUserIdFromJwt(token).equals(userId))
+            return true;
+        return false;
+    }
 }

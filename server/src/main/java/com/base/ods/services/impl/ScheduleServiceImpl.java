@@ -9,6 +9,7 @@ import com.base.ods.repository.ScheduleRepository;
 import com.base.ods.services.IScheduleService;
 import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.ScheduleCreateRequestDTO;
+import com.base.ods.services.requests.ScheduleGetFromUserIdDTO;
 import com.base.ods.services.requests.ScheduleUpdateRequestDTO;
 import com.base.ods.services.responses.ScheduleResponseDTO;
 import com.base.ods.services.responses.UserResponseDTO;
@@ -43,6 +44,17 @@ public class ScheduleServiceImpl implements IScheduleService {
     public ScheduleResponseDTO getScheduleById(Long id) {
         Schedule schedule = scheduleRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Messages.SCHEDULE_NOT_FOUND + id));
         return mapper.toDTO(schedule);
+    }
+
+    @Override
+    public ScheduleResponseDTO getUserActiveSchedule(ScheduleGetFromUserIdDTO scheduleGetFromUserIdDTO) {
+        Schedule schedule = scheduleRepository.findActiveScheduleByUserIdAndDateYearAndDateMonth(scheduleGetFromUserIdDTO.getUserId(), scheduleGetFromUserIdDTO.getDateYear(), scheduleGetFromUserIdDTO.getDateMonth());
+        if (schedule == null) {
+            return null;
+        }
+
+        ScheduleResponseDTO responseDTO = mapper.toDTO(schedule);
+        return responseDTO;
     }
 
     @Override
