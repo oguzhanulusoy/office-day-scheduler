@@ -17,6 +17,7 @@ import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
+import { toast } from "react-toastify";
 function OutOfOfficeDayPage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -49,10 +50,20 @@ function OutOfOfficeDayPage() {
       let serviceCaller = new ServiceCaller();
       OutOfOfficeDayService.updateOutOfOfficeDay(serviceCaller, {id: toUpdate, displayName: dayName, date: date})
       .then((res) => {
+        if (res.status === 401) {
+          toast.error("You are not authorized to update this day", { autoClose: 1000 })
+        }
+
+        if (res.status === 200) {
+          toast.success("Updated successfully", { autoClose: 1000 })
+        } else {
+          toast.error("An error occured while updating", { autoClose: 1000 })
+        }
+
         setRefresh(true);
       })
       .catch((error) => {
-        console.log(error)
+        console.log(error);
       })
     }
     const handleUpdate = () => {
@@ -81,11 +92,21 @@ function OutOfOfficeDayPage() {
         let serviceCaller = new ServiceCaller();
         OutOfOfficeDayService.getOutOfOfficeDays(serviceCaller, '')
         .then((res) => {
+          if (res.status === 401) {
+            toast.error("You are not authorized to view this page", { autoClose: 1000 })
+            navigate('/', { replace: true });
+            return
+          }
+
+          if (res.status !== 200) {
+            toast.error("An error occurred while fetching data", { autoClose: 1000 })
+            return
+          }
+
           setIsLoaded(true);
-          setRows(res);
+          setRows(res.data);
         })
         .catch((error) => {
-          console.log(error)
           setIsLoaded(true);
           setError(error);
         })
@@ -96,6 +117,18 @@ function OutOfOfficeDayPage() {
         let serviceCaller = new ServiceCaller();
         OutOfOfficeDayService.addOutOfOfficeDay(serviceCaller, { displayName: dayName, date: date })
         .then((res) => {
+          if (res.status === 401) {
+            toast.error("You are not authorized to create this day", { autoClose: 1000 })
+            navigate('/', { replace: true });
+            return
+          } 
+
+          if (res.status === 200) {
+            toast.success("Created successfully", { autoClose: 1000 })
+          } else {
+            toast.error("An error occured while creating", { autoClose: 1000 })
+          }
+
           setRefresh(true);
         })
         .catch((error) => {
@@ -175,6 +208,18 @@ function OutOfOfficeDayPage() {
       let serviceCaller = new ServiceCaller();
       OutOfOfficeDayService.deleteOutOfOfficeDay(serviceCaller, { ids: selectedIdList })
       .then((res) => {
+        if (res.status === 401) {
+          toast.error("You are not authorized to delete this day", { autoClose: 1000 })
+          navigate('/', { replace: true });
+          return
+        }
+
+        if (res.status === 200) {
+          toast.success("Deleted successfully", { autoClose: 1000 })
+        } else {
+          toast.error("An error occured while deleting", { autoClose: 1000 })
+        }
+
         setRefresh(true);
       })
       .catch((error) => {

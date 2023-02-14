@@ -19,7 +19,7 @@ class MyCalendarPageHelper {
     this.day = this.currentTime.getDate()
     this.year = this.currentTime.getFullYear()
 
-    this.vacation = 2;
+    this.vacation = 0;
   }
 
   refreshPage() {
@@ -103,7 +103,16 @@ class MyCalendarPageHelper {
       dateYear: this.year.toString()
     })
     .then((res) => {
-      
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return
+      }
+
+      if (res.status === 404) {
+        toast.error("You have not created a schedule yet", { autoClose: 1000 });
+        return
+      }
     })
     .catch((error) => {
       console.log(error)
@@ -117,9 +126,22 @@ class MyCalendarPageHelper {
       dateYear: this.year.toString()
     })
     .then((res) => {
-      if (res !== undefined && res !== null) {
-        const days = res.days.split(',');
-        this.fillCalendar(days);
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return
+      }
+
+      if (res.status === 404) {
+        toast.error("You have not created a calendar yet", { autoClose: 1000 });
+        return
+      }
+
+      if (res.status === 200) {
+        if (res.data.days != null) {
+          const days = res.data.days.split(',');
+          this.fillCalendar(days);
+        }
       }
     })
     .catch((error) => {
@@ -144,10 +166,15 @@ class MyCalendarPageHelper {
   getOutOfOfficeDayData() {
     OutOfOfficeDayService.getOutOfOfficeDays(this.serviceCaller, '')
     .then((res) => {
-      this.init(res);
-      this.setIsLoaded(true);
+      if (res.status === 200) {
+        this.init(res.data);
+        this.setIsLoaded(true);
+      } else {
+        toast.error("Error occurred while fetching data", { autoClose: 1000 });
+      }
     })
     .catch((error) => {
+      toast.error("Error occurred while fetching data", { autoClose: 1000 });
       this.setError(error);
       this.setIsLoaded(true);
       console.log(error)
@@ -218,7 +245,11 @@ class MyCalendarPageHelper {
     .then((res) => {
       if (res.status === 200) {
         this.getOutOfOfficeDayData();
-        this.setFullMonthDates(this.getDaysInMonth(this.month, this.year));
+
+        setTimeout(() => {
+          this.getActiveCalendar();
+        }, 100)
+
         toast.success("Event deleted successfully", { autoClose: 1000 });
         return true
       } else if (res.status === 403) {
@@ -331,6 +362,7 @@ class MyCalendarPageHelper {
     this.setOfficeList([]);
     this.setWfhList([]);
     this.setSelectedDaysList([]);
+    this.getOutOfOfficeDayData();
   }
 
   getDaysInMonth(month, year) {
@@ -366,43 +398,28 @@ class MyCalendarPageHelper {
     return days;
   }
 
-  saveSchedule() {
-    ScheduleService.addSchedule(this.serviceCaller, {
+  async saveSchedule() {
+    const whfLength = this.fullMonthDates.length - (this.officeList.length + this.outOfOfficeDayList.length)
+    const totalDay = this.fullMonthDates.length - (this.outOfOfficeDayList.length + this.vacation)
+
+    return await ScheduleService.addSchedule(this.serviceCaller, {
       userId: sessionStorage.getItem("userId"),
       officeDay: this.officeList.length,
-      workFromHome: this.wfhList.length,
+      workFromHome: whfLength === 0 ? null : whfLength,
       vacation: this.vacation,
       report: 100,
-      totalDay: this.fullMonthDates.length, // - out of office day count - vacation
+      totalDay: totalDay, // - out of office day count - vacation
       dateMonth: this.getMonthName(this.month),
       dateYear: this.year
     })
-    .then((res) => {
-      this.setIsLoaded(true)
-      console.log(res);
-    })
-    .catch((error) => {
-      this.setIsLoaded(true);
-      this.setError(error);
-      console.log(error)
-    })
   }
 
-  saveCalendar() {
-    CalendarService.addCalendar(this.serviceCaller, {
+  async saveCalendar() {
+    return await CalendarService.addCalendar(this.serviceCaller, {
       userId: sessionStorage.getItem("userId"),
       dateMonth: this.getMonthName(this.month),
       dateYear: this.year,
       days: this.officeList.length === 0 ? null : this.officeList.toString()
-    })
-    .then((res) => {
-      this.setIsLoaded(true);
-      console.log(res);
-    })
-    .catch((error) => {
-      this.setIsLoaded(true);
-      this.setError(error);
-      console.log(error)
     })
   }
 
@@ -413,6 +430,20 @@ class MyCalendarPageHelper {
         <i> {eventInfo.event.title}</i>
       </div>
     )
+  }
+
+  async save() {
+    const saveScheduleResponse = await this.saveSchedule();
+    const saveCalendarResponse = await this.saveCalendar();
+
+    if (saveScheduleResponse.status === 200 && saveCalendarResponse.status === 200) {
+      this.setIsLoaded(true)
+      this.handleAllDay('WFH');
+      toast.success("Successfully saved", { autoClose: 1000 });
+      return
+    }
+
+    toast.error("Something went wrong...", { autoClose: 1000 });
   }
 
   render() {
@@ -429,7 +460,7 @@ class MyCalendarPageHelper {
         <Button variant="contained" onClick={()=> this.handleAllDay('Office')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as Office</Button>
         <Button variant="contained" onClick={()=> this.handleAllDay('WFH')} style={{margin:10, backgroundColor:"#9E9E9E"}}>Set all as WFH</Button>
         <Button variant="contained" onClick={()=> this.handleClearAll()} style={{margin:10, backgroundColor:"#9E9E9E"}}>Clear All</Button>
-        <Button variant="contained" onClick={()=> {this.saveSchedule(); this.saveCalendar();}} style={{marginLeft:260, backgroundColor:"#9E9E9E"}}>Save</Button>
+        <Button variant="contained" onClick={()=> {this.save()}} style={{marginLeft:260, backgroundColor:"#9E9E9E"}}>Save</Button>
         <div className="card-body p-3" style={{backgroundColor:"white", padding:25}}>
           <FullCalendar
             headerToolbar={{

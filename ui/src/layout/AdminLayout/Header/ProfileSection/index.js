@@ -145,23 +145,8 @@ const ProfileSection = () => {
                                             </Stack>
                                             <Typography variant="subtitle2">Project Admin</Typography>
                                         </Stack>
-                                        <OutlinedInput
-                                            sx={{ width: '100%', pr: 1, pl: 2, my: 2 }}
-                                            id="input-search-profile"
-                                            value={value}
-                                            onChange={(e) => setValue(e.target.value)}
-                                            placeholder="Search profile options"
-                                            startAdornment={
-                                                <InputAdornment position="start">
-                                                    <IconSearch stroke={1.5} size="1rem" color={theme.palette.grey[500]} />
-                                                </InputAdornment>
-                                            }
-                                            aria-describedby="search-helper-text"
-                                            inputProps={{
-                                                'aria-label': 'weight'
-                                            }}
-                                        />
-                                        <Divider />
+                                        
+                                        <Divider sx={{ pt: 1 }} />
                                     </Box>
                                     <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
                                         <Box sx={{ p: 2 }}>
@@ -191,34 +176,7 @@ const ProfileSection = () => {
                                                     </ListItemIcon>
                                                     <ListItemText primary={<Typography variant="body2">Account Settings</Typography>} />
                                                 </ListItemButton>
-                                                <ListItemButton
-                                                    sx={{ borderRadius: `${customization.borderRadius}px` }}
-                                                    selected={selectedIndex === 1}
-                                                    onClick={(event) => handleListItemClick(event, 1, '/user/profile')}
-                                                >
-                                                    <ListItemIcon>
-                                                        <IconUser stroke={1.5} size="1.3rem" />
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={
-                                                            <Grid container spacing={1} justifyContent="space-between">
-                                                                <Grid item>
-                                                                    <Typography variant="body2">Social Profile</Typography>
-                                                                </Grid>
-                                                                <Grid item>
-                                                                    <Chip
-                                                                        label="02"
-                                                                        size="small"
-                                                                        sx={{
-                                                                            bgcolor: theme.palette.warning.dark,
-                                                                            color: theme.palette.background.default
-                                                                        }}
-                                                                    />
-                                                                </Grid>
-                                                            </Grid>
-                                                        }
-                                                    />
-                                                </ListItemButton>
+                                                
                                                 <ListItemButton
                                                     sx={{ borderRadius: `${customization.borderRadius}px` }}
                                                     selected={selectedIndex === 4}

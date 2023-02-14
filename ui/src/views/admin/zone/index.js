@@ -8,6 +8,7 @@ import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from "utils/jwtUtil";
 import { hasPermission } from "utils/generalUtils";
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 function ZonePage() {
     const navigate = useNavigate();
     const [rows, setRows] = useState([]);
@@ -91,8 +92,16 @@ function ZonePage() {
       let serviceCaller = new ServiceCaller();
       ZoneService.getZones(serviceCaller, '')
       .then((res) => {
-        setIsLoaded(true);
-        setRows(res);
+        if (res.status === 200) {
+          setIsLoaded(true);
+          setRows(res.data);
+        }
+        
+        if (res.status === 401) {
+          toast.error("You are not authorized to access this page", { autoClose: 1000 });
+          navigate('/', { replace: true });
+          return
+        }
       })
       .catch((error) => {
         console.log(error)

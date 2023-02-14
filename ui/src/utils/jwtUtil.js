@@ -63,8 +63,12 @@ class JWTUtil {
             }
 
             const response = await UserService.getUserFromToken(serviceCaller, requestBody);
-            sessionStorage.setItem('userId', response.id);
-            sessionStorage.setItem('userRole', response.roleName);
+            if (response.status !== 200) {
+                return false
+            }
+
+            sessionStorage.setItem('userId', response.data.id);
+            sessionStorage.setItem('userRole', response.data.roleName);
             
             return true
         }

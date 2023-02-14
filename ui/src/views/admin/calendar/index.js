@@ -7,6 +7,7 @@ import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import CalendarPageConfig from 'configs/calendarPageConfig.js';
+import { toast } from "react-toastify";
 
 class CalendarPageHelper {
   constructor() {
@@ -86,8 +87,14 @@ class CalendarPageHelper {
   getCalendarData() {
     CalendarService.getCalendars(this.serviceCaller, '')
     .then(res => {
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return;
+      }
+
       this.setIsLoaded(true);
-      this.setRows(res);
+      this.setRows(res.data);
     })
     .catch(error => {
       this.setError(error);
@@ -101,6 +108,13 @@ class CalendarPageHelper {
   handleDelete() {    
     CalendarService.deleteCalendar(this.serviceCaller, {ids: this.selectedIdList})
     .then(res => {
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return;
+      }
+
+      toast.success("Calendar deleted successfully.", { autoClose: 1000 });
       this.setRefresh(true);
     })
     .catch(error => {

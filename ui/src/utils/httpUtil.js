@@ -8,13 +8,19 @@ class HttpUtil {
             };
 
             fetch(completeUrl, requestOptions)
-            .then(response => {
+            .then(async response => {
                 if(response.status === 401 && window.location.pathname !== "/orion" && window.location.pathname !== "/login"){
                     window.location.assign(window.location.origin + "/orion");
                 }
-                return resolve(response.json());
+
+                const statusCode = response.status;
+                const data = await response.json();
+
+                return resolve({data: data, status: statusCode});
             })
-            .then(data => resolve(data))
+            .then(data => {
+                return resolve(data)
+            })
             .catch((err) => {
                 return reject(err);
             })
@@ -31,13 +37,19 @@ class HttpUtil {
             };
 
             fetch(completeUrl, requestOptions)
-            .then(response => {
+            .then(async response => {
                 if(response.status === 401 && window.location.pathname !== "/orion" && window.location.pathname !== "/login"){
                     window.location.assign(window.location.origin + "/orion");
                 }
-                return resolve(response.json());
+
+                const statusCode = response.status;
+                const data = await response.json();
+
+                return resolve({data: data, status: statusCode});
             })
-            .then(data => resolve(data))
+            .then(data => {
+                return resolve(data)
+            })
             .catch((err) => {
                 return reject(err);
             })
@@ -54,13 +66,20 @@ class HttpUtil {
             };
 
             fetch(completeUrl, requestOptions)
-            .then(response => {
+            .then(async response => {
                 if(response.status === 401 && window.location.pathname !== "/orion" && window.location.pathname !== "/login"){
                     window.location.assign(window.location.origin + "/orion");
                 }
-                return resolve(response.json());
+
+                const statusCode = response.status;
+                const data = await response.json();
+
+                return resolve({data: data, status: statusCode});
             })
-            .then(data => resolve(data))
+            .then(data => {
+                console.log(data)
+                return resolve(data)
+            })
             .catch((err) => {
                 return reject(err);
             })
@@ -81,6 +100,7 @@ class HttpUtil {
                 if(response.status === 401 && window.location.pathname !== "/orion" && window.location.pathname !== "/login"){
                     window.location.assign(window.location.origin + "/orion");
                 }
+
                 return resolve(response);
             })
             .then(data => resolve(data))

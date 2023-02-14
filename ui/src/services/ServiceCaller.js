@@ -15,6 +15,7 @@ class ServiceCaller {
         if(!headers){
             headers ={}
         }
+
         headers = Object.assign(headers, this.headers)
         return await HttpUtil.get(url, queryParams, headers);
     }
@@ -23,6 +24,7 @@ class ServiceCaller {
         if(!headers){
             headers ={}
         }
+
         headers = Object.assign(headers, this.headers)
         return await HttpUtil.post(url, queryParams, headers, requestBody);
     }
@@ -31,6 +33,7 @@ class ServiceCaller {
         if(!headers){
             headers ={}
         }
+
         headers = Object.assign(headers, this.headers)
         return await HttpUtil.delete(url, queryParams, headers, requestBody);
     }
@@ -39,6 +42,7 @@ class ServiceCaller {
         if(!headers){
             headers ={}
         }
+
         headers = Object.assign(headers, this.headers)
         return await HttpUtil.update(url, queryParams, headers, requestBody);
     }

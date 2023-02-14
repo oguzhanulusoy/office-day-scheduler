@@ -7,6 +7,7 @@ import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import SchedulePageConfig  from 'configs/schedulePageConfig.js';
+import { toast } from "react-toastify";
 
 class SchedulePageHelper {
   constructor() {
@@ -86,8 +87,18 @@ class SchedulePageHelper {
   getScheduleData() {
     ScheduleService.getSchedules(this.serviceCaller, '')
     .then(res => {
-      this.setIsLoaded(true);
-      this.setRows(res);
+      if (res.status === 401) {
+        toast.error("You are not authorized to see this page", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return;
+      }
+
+      if (res.status === 200) {
+        this.setIsLoaded(true);
+        this.setRows(res.data);
+      } else {
+        toast.error("An error occurred while fetching data", { autoClose: 1000 });
+      }
     })
     .catch(error => {
       console.log(error)
@@ -101,6 +112,19 @@ class SchedulePageHelper {
   handleDelete() {
     ScheduleService.deleteSchedule(this.serviceCaller, { ids: this.selectedIdList })
     .then(res => {
+      console.log(res)
+      if (res.status === 401) {
+        toast.error("You are not authorized to see this page", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return;
+      }
+
+      if (res.status === 200) {
+        toast.success("Data deleted successfully", { autoClose: 1000 });
+      } else {
+        toast.error("An error occurred while deleting data", { autoClose: 1000 });
+      }
+
       this.setRefresh(true);
     })
     .catch(error => {

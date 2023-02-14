@@ -18,6 +18,7 @@ import UserService from 'services/user/UserService';
 import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
+import { toast } from "react-toastify";
 function DepartmentPage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -155,10 +156,20 @@ onRowsDelete:()=>{handleDelete()},
     let serviceCaller = new ServiceCaller();
     DepartmentService.deleteDepartment(serviceCaller, { ids: selectedIdList })
     .then((res) => {
+      if (res.status === 401) {
+        toast.error("You are not authorized to delete department", { autoClose: 1000 });
+        navigate('/', { replace: true });
+        return
+      }
+
+      if (res.status === 200) {
+        toast.success("Department deleted successfully", { autoClose: 1000 });
+      } else {
+        toast.error("Department could not be deleted", { autoClose: 1000 });
+      }
       setRefresh(true);
     })
     .catch((error) => {
-      console.log(error)
       setError(error);
     })
   }
@@ -184,6 +195,18 @@ const saveDepartment = () => {
     groupManagerId: groupManager,
   })
   .then((res) => {
+    if (res.status === 401) {
+      toast.error("You are not authorized to create department", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status === 200) {
+      toast.success("Department created successfully", { autoClose: 1000 });
+    } else {
+      toast.error("Department could not be created", { autoClose: 1000 });
+    }
+
     setRefresh(true);
   })
   .catch((error) => {
@@ -211,11 +234,21 @@ const updateDepartment = () => {
     groupManagerId: groupManager
   })
   .then((res) => {
+    if (res.status === 401) {
+      toast.error("You are not authorized to update department", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status === 200) {
+      toast.success("Department updated successfully", { autoClose: 1000 });
+    } else {
+      toast.error("Department could not be updated", { autoClose: 1000 });
+    }
+
     setRefresh(true);
-    console.log(res)
   })
   .catch((error) => {
-    console.log(error)
     setIsLoaded(true);
     setError(error);
   })
@@ -241,11 +274,20 @@ const getDepartmentData = () => {
   let serviceCaller = new ServiceCaller();
   DepartmentService.getDepartments(serviceCaller, '')
   .then(res => {
+    if (res.status === 401) {
+      toast.error("You are not authorized to view departments", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status !== 200) {
+      toast.error("Departments could not be loaded", { autoClose: 1000 });
+    }
+
     setIsLoaded(true);
-    setRows(res);
+    setRows(res.data);
   })
   .catch(error => {
-    console.log(error)
     setIsLoaded(true);
     setError(error);
   })
@@ -276,10 +318,19 @@ const getUserData = () => {
   let serviceCaller = new ServiceCaller();
   UserService.getUsers(serviceCaller, '')
   .then(res => {
-    setUserList(res);
+    if (res.status === 401) {
+      toast.error("You are not authorized to view users", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status !== 200) {
+      toast.error("Users could not be loaded", { autoClose: 1000 });
+    }
+
+    setUserList(res.data);
   })
   .catch(error => {
-    console.log(error);
     setError(error);
   })
 }

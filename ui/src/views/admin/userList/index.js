@@ -7,6 +7,7 @@ import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from "utils/jwtUtil";
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
+import { toast } from 'react-toastify';
 function UserPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState([]);
@@ -166,8 +167,16 @@ function UserPage() {
     let serviceCaller = new ServiceCaller();
     UserService.getUsers(serviceCaller, '')
     .then(res => {
-      setIsLoaded(true);
-      setRows(res);
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page", { autoClose: 1000 });
+        navigate('/', { replace: true });
+        return
+      }
+
+      if (res.status === 200) {
+        setIsLoaded(true);
+        setRows(res.data);
+      }
     })
     .catch(error => {
       console.log(error)

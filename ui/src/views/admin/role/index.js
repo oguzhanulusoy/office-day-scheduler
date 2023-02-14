@@ -13,6 +13,7 @@ import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
+import { toast } from "react-toastify";
 function RolePage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -89,9 +90,9 @@ function RolePage() {
            return item.id;
       });
       setSelectedIdList(selectedIds);
-},
-onRowsDelete:()=>{handleDelete()},
-}
+    },
+    onRowsDelete:()=>{handleDelete()},
+  }
 
   const style = {
     position: 'absolute',
@@ -108,11 +109,21 @@ onRowsDelete:()=>{handleDelete()},
     let serviceCaller = new ServiceCaller();
     RoleService.getRoles(serviceCaller, '')
     .then(res => {
-      setIsLoaded(true);
-      setRows(res);
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+        navigate('/', { replace: true });
+        return
+      }
+
+      if (res.status === 200) {
+        setIsLoaded(true);
+        setRows(res.data);
+      } else {
+        toast.error("Error occurred while fetching roles.", { autoClose: 1000 });
+      }
+      
     })
     .catch(error => {
-      console.log(error)
       setIsLoaded(true);
       setError(error);
     })
@@ -142,10 +153,21 @@ onRowsDelete:()=>{handleDelete()},
     let serviceCaller = new ServiceCaller();
     RoleService.addRole(serviceCaller, { roleName })
     .then(res => {
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+        navigate('/', { replace: true });
+        return
+      }
+      
+      if (res.status === 200) {
+        toast.success("Role added successfully.", { autoClose: 1000 });
+      } else {
+        toast.error("Error occurred while adding role.", { autoClose: 1000 });
+      }
+    
       setRefresh(true);
     })
     .catch(error => {
-      console.log(error)
       setIsLoaded(true);
       setError(error);
     })
@@ -154,10 +176,21 @@ const updateRole = () => {
   let serviceCaller = new ServiceCaller();
   RoleService.updateRole(serviceCaller, {id: toUpdate, roleName: roleName})
   .then(res => {
+    if (res.status === 401) {
+      toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status === 200) {
+      toast.success("Role updated successfully.", { autoClose: 1000 });
+    } else {
+      toast.error("Error occurred while updating role.", { autoClose: 1000 });
+    }
+
     setRefresh(true);
   })
   .catch(error => {
-    console.log(error)
     setIsLoaded(true);
     setError(error);
   })
@@ -166,10 +199,21 @@ const deleteRole = () => {
   let serviceCaller = new ServiceCaller();
   RoleService.deleteRole(serviceCaller, { ids: selectedIdList })
   .then(res => {
+    if (res.status === 401) {
+      toast.error("You are not authorized to access this page.", { autoClose: 1000 });
+      navigate('/', { replace: true });
+      return
+    }
+
+    if (res.status === 200) {
+      toast.success("Role deleted successfully.", { autoClose: 1000 });
+    } else {
+      toast.error("Error occurred while deleting role.", { autoClose: 1000 });
+    }
+
     setRefresh(true);
   })
   .catch(error => {
-    console.log(error)
     setError(error);
   })
 }

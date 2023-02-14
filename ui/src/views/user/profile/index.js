@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import UserService from 'services/user/UserService';
 import ServiceCaller from 'services/ServiceCaller';
 import JWTUtil from 'utils/jwtUtil';
+import { toast } from 'react-toastify';
 
 function Profile() {
   const navigate = useNavigate();
@@ -14,7 +15,16 @@ function Profile() {
     const userId = sessionStorage.getItem('userId');
     UserService.getOneUser(serviceCaller, `/user/${userId}`, '')
     .then((res) => {
-      setUser(res);
+      if (res.status === 200) {
+        setUser(res.data);
+        return
+      }
+
+      if (res.status === 401) {
+        toast.error("You are not authorized to access this page", { autoClose: 1000 });
+        this.navigate('/', { replace: true });
+        return
+      }
     })
     .catch((err) => {
       console.log(err);
