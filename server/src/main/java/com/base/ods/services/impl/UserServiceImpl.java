@@ -12,21 +12,29 @@ import com.base.ods.repository.UserRepository;
 import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IRoleService;
 import com.base.ods.services.IUserService;
+import com.base.ods.services.requests.UserChangePasswordRequestDTO;
 import com.base.ods.services.requests.UserCreateRequestDTO;
 import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
 import com.base.ods.services.requests.UserUpdateRequestDTO;
 import com.base.ods.services.responses.DepartmentResponseDTO;
 import com.base.ods.services.responses.RoleResponseDTO;
+import com.base.ods.services.responses.UserChangePasswordResponseDTO;
 import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.services.IDepartmentService;
+import com.base.ods.services.IRefreshTokenService;
 import com.base.ods.services.IZoneService;
 import com.base.ods.services.responses.ZoneResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
 import org.springframework.data.domain.Page;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -49,7 +57,9 @@ public class UserServiceImpl implements IUserService {
     private ZoneEntityToDTOMapper zoneMapper;
     private RoleEntityToDTOMapper roleMapper;
     private DepartmentEntityToDTOMapper departmentMapper;
+    private AuthenticationManager authenticationManager;
     private JwtTokenProvider jwtTokenProvider;
+    private IRefreshTokenService refreshTokenService;
 
     @Override
     public List<UserResponseDTO> getAllUsers(Optional<Status> status, Pageable pageable) {
@@ -119,6 +129,40 @@ public class UserServiceImpl implements IUserService {
         result.setDepartmentManagerLastName(departmentDTO.getDepartmentManagerLastName());
         result.setGroupManagerFirstName(departmentDTO.getGroupManagerFirstName());
         result.setGroupManagerLastName(departmentDTO.getGroupManagerLastName());
+        return result;
+    }
+
+
+    @Override
+    public UserChangePasswordResponseDTO changePassword(UserChangePasswordRequestDTO userUpdateRequestDTO) {
+        UserChangePasswordResponseDTO result = new UserChangePasswordResponseDTO();
+        result.setUserId(userUpdateRequestDTO.getUserId());
+        result.setStatus("FAIL");
+
+        User user = userRepository.findById(userUpdateRequestDTO.getUserId()).orElseThrow(() -> new EntityNotFoundException(Messages.USER_NOT_FOUND + userUpdateRequestDTO.getUserId()));
+        if (passwordEncoder.matches(userUpdateRequestDTO.getOldPassword(), user.getPassword())) {
+            if (passwordEncoder.matches(userUpdateRequestDTO.getNewPassword(), user.getPassword())) {
+                result.setMessage(Messages.PASSWORD_SAME);
+                return result;
+            }
+                
+            user.setPassword(passwordEncoder.encode(userUpdateRequestDTO.getNewPassword()));
+            User newUser = userRepository.save(user);
+            
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(newUser.getEmail(), userUpdateRequestDTO.getNewPassword());
+            Authentication auth = authenticationManager.authenticate(authToken);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            String jwtToken = jwtTokenProvider.generateJwtToken(auth);
+            String refreshToken = refreshTokenService.createRefreshToken(newUser);
+            result.setUserId(newUser.getId());
+            result.setMessage(Messages.PASSWORD_CHANGED);
+            result.setStatus("SUCCESS");
+            result.setToken("Bearer " + jwtToken);
+            result.setRefreshToken(refreshToken);
+            return result;
+        }
+
+        result.setMessage(Messages.PASSWORD_NOT_MATCH);
         return result;
     }
 

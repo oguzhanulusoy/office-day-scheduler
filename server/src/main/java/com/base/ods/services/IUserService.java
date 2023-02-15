@@ -2,9 +2,11 @@ package com.base.ods.services;
 
 import com.base.ods.domain.User;
 import com.base.ods.enums.Status;
+import com.base.ods.services.requests.UserChangePasswordRequestDTO;
 import com.base.ods.services.requests.UserCreateRequestDTO;
 import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
 import com.base.ods.services.requests.UserUpdateRequestDTO;
+import com.base.ods.services.responses.UserChangePasswordResponseDTO;
 import com.base.ods.services.responses.UserResponseDTO;
 
 import com.base.ods.util.IdWrapper;
@@ -21,6 +23,8 @@ public interface IUserService {
     UserResponseDTO getUserByToken(UserInfoFromTokenRequestDTO token);
 
     UserResponseDTO createUser(UserCreateRequestDTO userCreateRequestDTO);
+
+    UserChangePasswordResponseDTO changePassword(UserChangePasswordRequestDTO userUpdateRequestDTO);
 
     UserResponseDTO updateUser(UserUpdateRequestDTO userUpdateRequestDTO);
 

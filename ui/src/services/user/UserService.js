@@ -17,6 +17,11 @@ class UserService {
         return await serviceCaller.update("/user", undefined, headers, requestBody)
     }
 
+    async changePassword(serviceCaller, requestBody) {
+        let headers= { 'Content-Type': 'application/json'};
+        return await serviceCaller.update("/user/change-password", undefined, headers, requestBody)
+    }
+
     async deleteUser(serviceCaller, requestBody) {
         let headers = {'Accept': 'application/json','Content-Type': 'application/json'};
         return await serviceCaller.delete("/user", undefined, headers, requestBody)

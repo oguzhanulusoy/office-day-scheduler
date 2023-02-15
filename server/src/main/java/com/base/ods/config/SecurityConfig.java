@@ -57,6 +57,7 @@ public class SecurityConfig {
         "/user",
         "/schedule",
         "/calendar",
+        "/user/change-password"
     };
 
     public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationEntryPoint handler) {

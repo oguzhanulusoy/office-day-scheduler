@@ -8,4 +8,7 @@ public class Messages {
     public static final String ZONE_NOT_FOUND = "Zone Not Found With ID ";
     public static final String SCHEDULE_NOT_FOUND = "Schedule Not Found With ID ";
     public static final String OUT_OF_OFFICE_DAY_NOT_FOUND = "Office Day Not Found With ID ";
+    public static final String PASSWORD_SAME = "New Password Cannot Be Same As Old Password";
+    public static final String PASSWORD_CHANGED = "Password Changed Successfully";
+    public static final String PASSWORD_NOT_MATCH = "Old Password Not Match";
 }

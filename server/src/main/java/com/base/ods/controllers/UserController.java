@@ -1,16 +1,21 @@
 package com.base.ods.controllers;
 
+import com.base.ods.controllers.requests.UserChangePasswordRequest;
 import com.base.ods.controllers.requests.UserCreateRequest;
 import com.base.ods.controllers.requests.UserInfoFromTokenRequest;
 import com.base.ods.controllers.requests.UserUpdateRequest;
+import com.base.ods.controllers.responses.UserChangePasswordResponse;
 import com.base.ods.controllers.responses.UserResponse;
 import com.base.ods.enums.Status;
+import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.UserResponseToDTOMapper;
 import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IUserService;
+import com.base.ods.services.requests.UserChangePasswordRequestDTO;
 import com.base.ods.services.requests.UserCreateRequestDTO;
 import com.base.ods.services.requests.UserInfoFromTokenRequestDTO;
 import com.base.ods.services.requests.UserUpdateRequestDTO;
+import com.base.ods.services.responses.UserChangePasswordResponseDTO;
 import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
@@ -73,6 +78,23 @@ public class UserController {
         UserUpdateRequestDTO requestDTO = mapper.toDTO(userUpdateRequest);
         UserResponseDTO responseDTO = userService.updateUser(requestDTO);
         UserResponse result = mapper.toResponse(responseDTO);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<UserChangePasswordResponse> changePassword(@RequestHeader Map<String, String> headers, @Valid @RequestBody UserChangePasswordRequest userChangePasswordRequest) {
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), userChangePasswordRequest.getUserId())) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserChangePasswordRequestDTO requestDTO = mapper.toDTO(userChangePasswordRequest);
+        UserChangePasswordResponseDTO responseDTO = userService.changePassword(requestDTO);
+        if (responseDTO == null) {
+            return ResponseEntity.status(400).build();
+        }
+
+        UserChangePasswordResponse result = mapper.toResponse(responseDTO);
+
         return ResponseEntity.ok(result);
     }
 
