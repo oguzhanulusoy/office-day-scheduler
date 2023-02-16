@@ -2,11 +2,13 @@ package com.base.ods.controllers;
 
 import com.base.ods.controllers.requests.ZoneCreateRequest;
 import com.base.ods.controllers.requests.ZoneUpdateRequest;
+import com.base.ods.controllers.responses.ZoneDeleteResponse;
 import com.base.ods.controllers.responses.ZoneResponse;
 import com.base.ods.mapper.ZoneResponseToDTOMapper;
 import com.base.ods.services.IZoneService;
 import com.base.ods.services.requests.ZoneCreateRequestDTO;
 import com.base.ods.services.requests.ZoneUpdateRequestDTO;
+import com.base.ods.services.responses.ZoneDeleteResponseDTO;
 import com.base.ods.services.responses.ZoneResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
@@ -54,7 +56,9 @@ public class ZoneController {
     }
 
     @DeleteMapping
-    public void deleteZone(@RequestBody IdWrapper ids) {
-        zoneService.deleteZonesByIds(ids);
+    public ResponseEntity<ZoneDeleteResponse> deleteZone(@RequestBody IdWrapper ids) {
+        ZoneDeleteResponseDTO responseDTO = zoneService.deleteZonesByIds(ids);
+        ZoneDeleteResponse result = mapper.toResponse(responseDTO);
+        return ResponseEntity.ok(result);
     }
 }

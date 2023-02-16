@@ -52,6 +52,22 @@ class JWTUtil {
         return false;
     }
 
+    static async confirmJWT(serviceCaller) {
+        const requestBody = {
+            token: JWTUtil.getJWT()
+        }
+
+        const response = await UserService.getUserFromToken(serviceCaller, requestBody);
+        if (response.status !== 200) {
+            return null
+        }
+
+        sessionStorage.setItem('userId', response.data.id);
+        sessionStorage.setItem('userRole', response.data.roleName);
+
+        return {id: response.data.id, role: response.data.roleName}
+    }
+
     static async validateStorage(serviceCaller) {
         if (!JWTUtil.checkJWT()) {
             return false

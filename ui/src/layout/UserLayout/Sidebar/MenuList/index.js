@@ -21,13 +21,19 @@ const MenuList = () => {
     useEffect(() => {
         const serviceCaller = new ServiceCaller();
         JWTUtil.validateStorage(serviceCaller)
-        .then((response) => {
+        .then(async (response) => {
             if (!response) {
                 navigate('/', { replace: true });
                 return 
             }
 
-            setUserRole(sessionStorage.getItem('userRole'));
+            const res = await JWTUtil.confirmJWT(serviceCaller);
+            if (res === null) {
+                navigate('/', { replace: true });
+                return;
+            }
+
+            setUserRole(res.role);
         })
     }, [])
 

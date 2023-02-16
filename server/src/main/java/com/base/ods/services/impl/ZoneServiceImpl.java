@@ -9,6 +9,7 @@ import com.base.ods.services.IUserService;
 import com.base.ods.services.IZoneService;
 import com.base.ods.services.requests.ZoneCreateRequestDTO;
 import com.base.ods.services.requests.ZoneUpdateRequestDTO;
+import com.base.ods.services.responses.ZoneDeleteResponseDTO;
 import com.base.ods.services.responses.ZoneResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
@@ -61,15 +62,27 @@ public class ZoneServiceImpl implements IZoneService {
 
     @Override
     @Transactional
-    public void deleteZonesByIds(IdWrapper ids) {
+    public ZoneDeleteResponseDTO deleteZonesByIds(IdWrapper ids) {
+        ZoneDeleteResponseDTO response = new ZoneDeleteResponseDTO();
+
         for (int i = 0; i < ids.getIds().size(); i++) {
             if (!zoneRepository.existsById(ids.getIds().get(i))) {
-                throw new EntityNotFoundException(Messages.ZONE_NOT_FOUND + ids.getIds().get(i));
+                response.setMessage("Zone with Id " + ids.getIds().get(i) + " not found");
+                response.setStatus("FAIL");
+                return response;
             }
             if (userService.zoneExists(ids.getIds().get(i))) {
-                throw new MethodNotAllowedException("Zone with Id " + ids.getIds().get(i) + " cannot be deleted");
+                response.setMessage("Zone with Id " + ids.getIds().get(i) + " cannot be deleted");
+                response.setStatus("FAIL");
+                return response;
             }
         }
+        
         zoneRepository.deleteByIdIn(ids.getIds());
+
+        response.setMessage("Zones deleted successfully");
+        response.setStatus("SUCCESS");
+
+        return response;
     }
 }
