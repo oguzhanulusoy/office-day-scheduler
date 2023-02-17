@@ -10,13 +10,10 @@ import {
     Chip,
     ClickAwayListener,
     Divider,
-    Grid,
-    InputAdornment,
     List,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    OutlinedInput,
     Paper,
     Popper,
     Stack,
@@ -31,7 +28,9 @@ import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 
 // assets
-import { IconLogout, IconSearch, IconSettings, IconUser, IconUserCircle } from '@tabler/icons';
+import { IconLogout, IconSettings, IconUserCircle } from '@tabler/icons';
+import ServiceCaller from 'services/ServiceCaller';
+import UserService from 'services/user/UserService';
 
 // ==============================|| PROFILE MENU ||============================== //
 const ProfileSection = () => {
@@ -81,6 +80,29 @@ const ProfileSection = () => {
 
         prevOpen.current = open;
     }, [open]);
+
+    const user = useRef({});
+    useEffect(() => {
+        const serviceCaller = new ServiceCaller();
+        const userId = sessionStorage.getItem('userId');
+
+        UserService.getOneUser(serviceCaller, `/user/${userId}`, '')
+        .then((res) => {
+            if (res.status === 200) {
+                user.current = res.data;
+                return
+            }
+
+            if (res.status === 401) {
+                toast.error("You are not authorized to access this page", { autoClose: 1000 });
+                this.navigate('/', { replace: true });
+                return
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        })
+    }, [])
 
     return (
         <>
@@ -140,10 +162,10 @@ const ProfileSection = () => {
                                             <Stack direction="row" spacing={0.5} alignItems="center">
                                                 <Typography variant="h4">Welcome,</Typography>
                                                 <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                                                    Johne Doe
+                                                    {user.current.firstName} {user.current.lastName}
                                                 </Typography>
                                             </Stack>
-                                            <Typography variant="subtitle2">Project Admin</Typography>
+                                            <Typography variant="subtitle2">{user.current.roleName}</Typography>
                                         </Stack>
                                         
                                         <Divider sx={{ pt: 1 }} />
