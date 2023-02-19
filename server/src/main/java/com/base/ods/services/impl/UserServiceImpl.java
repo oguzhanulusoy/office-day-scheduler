@@ -169,11 +169,11 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponseDTO updateUser(UserUpdateRequestDTO userUpdateRequestDTO) {
         User user = userRepository.findById(userUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.USER_NOT_FOUND + userUpdateRequestDTO.getId()));
-        RoleResponseDTO roleDTO = roleService.getRoleById(userUpdateRequestDTO.getRoleId());
+        RoleResponseDTO roleDTO = roleService.getRoleById(user.getRole().getId());
         Role role = roleMapper.responseDTOToEntity(roleDTO);
         ZoneResponseDTO zoneDTO = zoneService.getZoneById(userUpdateRequestDTO.getZoneId());
         Zone zone = zoneMapper.responseDTOToEntity(zoneDTO);
-        DepartmentResponseDTO departmentDTO = departmentService.getDepartmentById(userUpdateRequestDTO.getDepartmentId());
+        DepartmentResponseDTO departmentDTO = departmentService.getDepartmentById(user.getDepartment().getId());
         Department department = departmentMapper.responseDTOToEntity(departmentDTO);
         User toUpdate = mapper.toEntity(userUpdateRequestDTO);
         toUpdate.setRole(role);
@@ -181,7 +181,10 @@ public class UserServiceImpl implements IUserService {
         toUpdate.setDepartment(department);
         toUpdate.setRegistrationNumber(user.getRegistrationNumber());
         toUpdate.setEmail(user.getEmail());
-        toUpdate.setPassword(passwordEncoder.encode(userUpdateRequestDTO.getPassword()));
+        toUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+        toUpdate.setStatus(user.getStatus());
+        toUpdate.setFirstName(user.getFirstName());
+        toUpdate.setLastName(user.getLastName());
         User newUser = userRepository.save(toUpdate);
         UserResponseDTO result = mapper.toDTO(newUser);
         result.setDepartmentManagerFirstName(departmentDTO.getDepartmentManagerFirstName());

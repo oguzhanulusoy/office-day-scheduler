@@ -9,12 +9,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserUpdateRequestDTO {
     Long id;
-    String firstName;
-    String lastName;
-    String password;
     String transportChoice;
-    Long roleId;
     Long zoneId;
-    Long departmentId;
-    Status status;
 }

@@ -74,7 +74,11 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UserUpdateRequest userUpdateRequest) {
+    public ResponseEntity<UserResponse> updateUser(@RequestHeader Map<String, String> headers, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
+        if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), userUpdateRequest.getId())) {
+            return ResponseEntity.status(401).build();
+        }
+
         UserUpdateRequestDTO requestDTO = mapper.toDTO(userUpdateRequest);
         UserResponseDTO responseDTO = userService.updateUser(requestDTO);
         UserResponse result = mapper.toResponse(responseDTO);

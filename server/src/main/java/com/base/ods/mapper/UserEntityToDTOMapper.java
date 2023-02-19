@@ -34,8 +34,6 @@ public interface UserEntityToDTOMapper {
     User toEntity(UserCreateRequestDTO userCreateRequestDTO);
 
     @Mapping(source = "zoneId", target = "zone.id")
-    @Mapping(source = "roleId", target = "role.id")
-    @Mapping(source = "departmentId", target = "department.id")
     User toEntity(UserUpdateRequestDTO userUpdateRequestDTO);
 
     List<UserResponseDTO> convert(Page<User> users);

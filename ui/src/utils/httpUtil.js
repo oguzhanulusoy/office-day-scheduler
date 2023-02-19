@@ -77,7 +77,6 @@ class HttpUtil {
                 return resolve({data: data, status: statusCode});
             })
             .then(data => {
-                console.log(data)
                 return resolve(data)
             })
             .catch((err) => {
