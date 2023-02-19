@@ -145,30 +145,35 @@ function Calendar () {
 
   const getActiveCalendar = async () => {
     const serviceCaller = new ServiceCaller();
-    const result = await CalendarService.getActiveCalendar(serviceCaller, {
-      userId: parseInt(sessionStorage.getItem('userId')),
-      dateMonth: Helper.getMonthName(month),
-      dateYear: year.toString()
-    })
-
-    if (result.status === 401) {
-      toast.error("You are not authorized to access this page", { autoClose: 1000 });
-      navigate('/', { replace: true });
-      return
-    }
-
-    if (result.status === 404) {
-      toast.error("You have not created a calendar yet", { autoClose: 1000 });
-      return
-    }
-
-    if (result.status === 200) {
-      if (result.data.days != null) {
-        const days = result.data.days.split(',');
-        fillCalendar(days);
+    try {
+      const result = await CalendarService.getActiveCalendar(serviceCaller, {
+        userId: parseInt(sessionStorage.getItem('userId')),
+        dateMonth: Helper.getMonthName(month),
+        dateYear: year.toString()
+      })
+  
+      if (result.status === 401) {
+        toast.error("You are not authorized to access this page", { autoClose: 1000 });
+        navigate('/', { replace: true });
+        return
       }
+  
+      if (result.status === 404) {
+        toast.error("You have not created a calendar yet", { autoClose: 1000 });
+        return
+      }
+  
+      if (result.status === 200) {
+        if (result.data.days != null) {
+          const days = result.data.days.split(',');
+          fillCalendar(days);
+        }
+        setIsLoaded(true)
+      }
+    } catch (error) {
       setIsLoaded(true)
     }
+    
   }
 
   const getOutOfOfficeDayData = async () => {

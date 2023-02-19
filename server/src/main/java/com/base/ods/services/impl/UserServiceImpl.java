@@ -181,7 +181,7 @@ public class UserServiceImpl implements IUserService {
         toUpdate.setDepartment(department);
         toUpdate.setRegistrationNumber(user.getRegistrationNumber());
         toUpdate.setEmail(user.getEmail());
-        toUpdate.setPassword(passwordEncoder.encode(user.getPassword()));
+        toUpdate.setPassword(user.getPassword());
         toUpdate.setStatus(user.getStatus());
         toUpdate.setFirstName(user.getFirstName());
         toUpdate.setLastName(user.getLastName());
