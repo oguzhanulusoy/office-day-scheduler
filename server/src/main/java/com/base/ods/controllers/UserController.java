@@ -7,7 +7,6 @@ import com.base.ods.controllers.requests.UserUpdateRequest;
 import com.base.ods.controllers.responses.UserChangePasswordResponse;
 import com.base.ods.controllers.responses.UserResponse;
 import com.base.ods.enums.Status;
-import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.UserResponseToDTOMapper;
 import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IUserService;

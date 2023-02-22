@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import MUIDataTable from "mui-datatables";
-import { createTheme, Divider, ThemeProvider, Button, Modal, Box, TextField } from "@mui/material";
+import { createTheme, ThemeProvider, Button, Modal, Box, TextField } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
