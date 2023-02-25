@@ -73,21 +73,13 @@ class JWTUtil {
             return false
         }
 
-        if (!JWTUtil.checkUserInfo()){
-            const requestBody = {
-                token: JWTUtil.getJWT()
-            }
-
-            const response = await UserService.getUserFromToken(serviceCaller, requestBody);
-            if (response.status !== 200) {
-                return false
-            }
-
-            sessionStorage.setItem('userId', response.data.id);
-            sessionStorage.setItem('userRole', response.data.roleName);
-            
-            return true
+        const response = await JWTUtil.confirmJWT(serviceCaller);
+        if (response === null) {
+            return false
         }
+
+        sessionStorage.setItem('userId', response.id);
+        sessionStorage.setItem('userRole', response.role);
 
         return true
     }

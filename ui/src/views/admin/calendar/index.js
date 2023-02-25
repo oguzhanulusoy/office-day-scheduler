@@ -41,7 +41,7 @@ class CalendarPageHelper {
       onRowSelectionChange: (currentSelect, allSelected) => {           
         const result = allSelected.map(item => { return this.rows.at(item.index) });
         const selectedIds = result.map(item => {
-             return item.id;
+            return item.id;
         });
         this.setSelectedIdList(selectedIds);
       },

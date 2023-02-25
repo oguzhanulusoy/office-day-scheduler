@@ -17,18 +17,21 @@ import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Log4j2
 public class CalendarServiceImpl implements ICalendarService {
     private CalendarRepository calendarRepository;
     private IUserService userService;
@@ -37,8 +40,15 @@ public class CalendarServiceImpl implements ICalendarService {
     private JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public List<CalendarResponseDTO> getAllCalendars(Pageable pageable) {
-        Page<Calendar> calendarList = calendarRepository.findAll(pageable);
+    public List<CalendarResponseDTO> getAllCalendars(List<Long> userIds, Pageable pageable) {
+        Page<Calendar> calendarList;
+        if (userIds.isEmpty()) {
+            calendarList = calendarRepository.findAll(pageable);
+        } else {
+            List<Calendar> calendars = calendarRepository.findAllCalendarsByUserIdIn(userIds);
+            calendarList = new PageImpl<>(calendars, pageable, calendars.size());
+        }
+
         List<CalendarResponseDTO> responseDTO = mapper.convert(calendarList);
         for (CalendarResponseDTO calendar : responseDTO) {
             if (calendar.getDays() != null) {
@@ -60,12 +70,20 @@ public class CalendarServiceImpl implements ICalendarService {
 
     @Override
     public CalendarResponseDTO getActiveCalendarByUserId(CalendarFromUserIdDTO calendarFromUserIdDTO) {
-        Calendar calendar = calendarRepository.findActiveCalendarByUserIdAndDateYearAndDateMonth(calendarFromUserIdDTO.getUserId(), calendarFromUserIdDTO.getDateYear(), calendarFromUserIdDTO.getDateMonth());
-        if (calendar == null) {
+        List<Calendar> calendars = calendarRepository.findActiveCalendarByUserId(calendarFromUserIdDTO.getUserId());
+        if (calendars.isEmpty()) {
             return null;
         }
 
-        CalendarResponseDTO responseDTO = mapper.toDTO(calendar);
+        Optional<Calendar> activeCalendar = calendars.stream()
+            .filter(calendar -> calendar.getDateMonth().equals(calendarFromUserIdDTO.getDateMonth()) && calendar.getDateYear().equals(calendarFromUserIdDTO.getDateYear()))
+            .findFirst();
+
+        if (activeCalendar.isEmpty()) {
+            return null;
+        }
+
+        CalendarResponseDTO responseDTO = mapper.toDTO(activeCalendar.get());
         if (responseDTO.getDays() != null) {
             responseDTO.setOfficeDay(responseDTO.getDays().split(",").length);
         }
@@ -93,6 +111,15 @@ public class CalendarServiceImpl implements ICalendarService {
         
         if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), calendar.getUser().getId())) {
             return null;
+        }
+
+        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
+            Long managerId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
+            UserResponseDTO managerUserData = userService.getUserById(managerId);
+            if (managerUserData.getDepartmentId() != calendar.getUser().getDepartment().getId()) {
+                return null;
+            }
         }
         
         UserResponseDTO userResponseDTO = userService.getUserById(calendar.getUser().getId());

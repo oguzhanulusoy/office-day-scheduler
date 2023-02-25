@@ -3,10 +3,8 @@ export const sleep = (ms) => {
 }
 
 export const hasPermission = (navigate) => {
-    if (sessionStorage.getItem('userRole') !== "MANAGER") {
-        navigate('/user/profile', { replace: true });
-        return false;
-    }
+    if (sessionStorage.getItem('userRole') === "SUPER_USER" || sessionStorage.getItem('userRole') === "MANAGER") return true;
 
-    return true;
+    navigate('/user/profile', { replace: true });
+    return false;
 }

@@ -19,6 +19,8 @@ import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 
@@ -36,8 +38,15 @@ public class UserController {
     private UserResponseToDTOMapper mapper;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getAllUsers(@RequestParam Optional<Status> status, Pageable pageable) {
-        List<UserResponseDTO> userList = userService.getAllUsers(status, pageable);
+    public ResponseEntity<List<UserResponse>> getAllUsers(@RequestHeader Map<String, String> headers, @RequestParam Optional<Status> status, Pageable pageable) {
+        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        Optional<Long> departmentId = null;
+        if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
+            Long userId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
+            UserResponseDTO userDTO = userService.getUserById(userId);
+            departmentId = Optional.of(userDTO.getDepartmentId());
+        }
+        List<UserResponseDTO> userList = userService.getAllUsers(departmentId, status, pageable);
         List<UserResponse> result = mapper.toResponseList(userList);
         return ResponseEntity.ok(result);
     }

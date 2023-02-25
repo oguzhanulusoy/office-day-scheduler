@@ -6,12 +6,13 @@ import com.base.ods.services.requests.CalendarUpdateRequestDTO;
 import com.base.ods.services.responses.CalendarResponseDTO;
 import com.base.ods.util.IdWrapper;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ICalendarService {
-    List<CalendarResponseDTO> getAllCalendars(Pageable pageable);
+    List<CalendarResponseDTO> getAllCalendars(List<Long> userIds, Pageable pageable);
 
     CalendarResponseDTO getCalendarById(Long id);
 

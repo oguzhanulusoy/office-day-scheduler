@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IUserService {
-    List<UserResponseDTO> getAllUsers(Optional<Status> status, Pageable pageable);
+    List<UserResponseDTO> getAllUsers(Optional<Long> departmentId, Optional<Status> status, Pageable pageable);
 
     UserResponseDTO getUserById(Long id);
 

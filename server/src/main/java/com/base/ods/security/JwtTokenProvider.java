@@ -4,10 +4,11 @@ import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+
+import com.base.ods.domain.User;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import java.util.List;
-import java.util.Arrays;
 
 import java.util.Date;
 
@@ -22,23 +23,29 @@ public class JwtTokenProvider {
     public String generateJwtToken(Authentication auth) {
         JwtUserDetails userDetails = (JwtUserDetails) auth.getPrincipal();
         Date expireDate = new Date(System.currentTimeMillis()+ EXPIRES_IN);
-        return Jwts.builder().setSubject(Long.toString(userDetails.getId()))
-                .claim("isAdmin", userDetails.isAdmin())
-                .setIssuedAt(new Date()).setExpiration(expireDate)
-                .signWith(SignatureAlgorithm.HS512, APP_SECRET).compact();
+        return Jwts.builder()
+            .claim("userId", userDetails.getId())
+            .claim("email", userDetails.getUsername())
+            .claim("userRole", userDetails.getUserRole())
+            .claim("departmentId", userDetails.getDepartmentId())
+            .setIssuedAt(new Date()).setExpiration(expireDate)
+            .signWith(SignatureAlgorithm.HS512, APP_SECRET).compact();
     }
 
-    public String generateJwtTokenByUserId(Long userId, boolean isAdmin) {
+    public String generateJwtTokenByUserId(User user) {
         Date expireDate = new Date(System.currentTimeMillis()+ EXPIRES_IN);
-        return Jwts.builder().setSubject(Long.toString(userId))
-                .claim("isAdmin", isAdmin)
-                .setIssuedAt(new Date()).setExpiration(expireDate)
-                .signWith(SignatureAlgorithm.HS512, APP_SECRET).compact();
+        return Jwts.builder()
+            .claim("userId", user.getId())
+            .claim("email", user.getEmail())
+            .claim("userRole", user.getRole().getRoleName())
+            .claim("departmentId", user.getDepartment().getId())
+            .setIssuedAt(new Date()).setExpiration(expireDate)
+            .signWith(SignatureAlgorithm.HS512, APP_SECRET).compact();
     }
 
     public Long getUserIdFromJwt(String token) {
         Claims claims = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(token).getBody();
-        return Long.parseLong(claims.getSubject());
+        return claims.get("userId", Long.class);
     }
 
     boolean validateToken(String token) {
@@ -63,25 +70,32 @@ public class JwtTokenProvider {
         return expiration.before(new Date());
     }
 
-    public List<GrantedAuthority> getRolesFromToken(String token) {
+    public GrantedAuthority getRolesFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(token).getBody();
-        List<GrantedAuthority> roles = null;
-        Boolean isAdmin = claims.get("isAdmin", Boolean.class);
+        GrantedAuthority role = null;
+        
+        String userRole = claims.get("userRole", String.class);
+        Boolean isAdmin = userRole.equals("SUPER_USER");
+        Boolean isManager = userRole.equals("MANAGER");
 
         if (isAdmin != null && isAdmin) {
-            roles = Arrays.asList(new SimpleGrantedAuthority("MANAGER"), new SimpleGrantedAuthority("USER"));
+            role = new SimpleGrantedAuthority("SUPER_USER");
+        } else if (isManager != null && isManager) {
+            role = new SimpleGrantedAuthority("MANAGER");
         } else {
-            roles = Arrays.asList(new SimpleGrantedAuthority("USER"));
+            role = new SimpleGrantedAuthority("USER");
         }
 
-        return roles;
+        return role;
     }
 
     public boolean hasPermission(String token, Long userId) {
-        List<GrantedAuthority> userRole = this.getRolesFromToken(token);
-        if (userRole.contains(new SimpleGrantedAuthority("MANAGER")))
+        GrantedAuthority userRole = this.getRolesFromToken(token);
+        if (userRole.equals(new SimpleGrantedAuthority("SUPER_USER")))
             return true;
-        else if (userRole.contains(new SimpleGrantedAuthority("USER")) && this.getUserIdFromJwt(token).equals(userId))
+        else if (userRole.equals(new SimpleGrantedAuthority("MANAGER")))
+            return true;
+        else if (userRole.equals(new SimpleGrantedAuthority("USER")) && this.getUserIdFromJwt(token).equals(userId))
             return true;
         return false;
     }

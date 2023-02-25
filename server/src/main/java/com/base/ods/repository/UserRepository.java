@@ -14,6 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findAllByStatus(Status status, Pageable pageable);
 
+    Page<User> findAllByDepartmentId(Long departmentId, Pageable pageable);
+
     User findByEmail(String email);
 
     void deleteByIdIn(List<Long> ids);

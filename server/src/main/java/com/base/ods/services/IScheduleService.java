@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IScheduleService {
-    List<ScheduleResponseDTO> getAllSchedules(Pageable pageable);
+    List<ScheduleResponseDTO> getAllSchedules(List<Long> userIds, Pageable pageable);
 
     ScheduleResponseDTO getScheduleById(Long id);
 

@@ -16,23 +16,24 @@ import java.util.List;
 public class JwtUserDetails implements UserDetails {
     public Long id;
     private String username;
-    private boolean isAdmin;
+    private String userRole;
     private String password;
+    private Long departmentId;
     private Collection<? extends GrantedAuthority> authorities;
 
-    private JwtUserDetails(Long id, String email, String password, boolean isAdmin, Collection<? extends GrantedAuthority> authorities) {
+    private JwtUserDetails(Long id, String email, String password, String userRole, Long departmentId, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = email;
         this.password = password;
-        this.isAdmin = isAdmin;
+        this.userRole = userRole;
+        this.departmentId = departmentId;
         this.authorities = authorities;
     }
 
     public static JwtUserDetails create(User user) {
         List<GrantedAuthority> authoritiesList = new ArrayList<>();
         authoritiesList.add(new SimpleGrantedAuthority(user.getRole().getRoleName()));
-        boolean isAdmin = user.getRole().getRoleName().equals("MANAGER");
-        return new JwtUserDetails(user.getId(), user.getEmail(), user.getPassword(), isAdmin, authoritiesList);
+        return new JwtUserDetails(user.getId(), user.getEmail(), user.getPassword(), user.getRole().getRoleName(), user.getDepartment().getId(), authoritiesList);
     }
 
     @Override

@@ -10,7 +10,7 @@ import Logo from 'ui-component/Logo';
 // ==============================|| MAIN LOGO ||============================== //
 
 const LogoSection = () => (
-    <ButtonBase disableRipple component={Link} to={'/admin/role'}>
+    <ButtonBase disableRipple component={Link} to={'/user/profile'}>
         <Logo />
     </ButtonBase>
 );

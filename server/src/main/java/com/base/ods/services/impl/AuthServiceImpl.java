@@ -58,8 +58,7 @@ public class AuthServiceImpl implements IAuthService {
         if (token.getToken().equals(refreshRequest.getRefreshToken()) &&
                 !refreshTokenService.isRefreshExpired(token)) {
             User user = token.getUser();
-            boolean isAdmin = user.getRole().getRoleName().equals("MANAGER");
-            String jwtToken = jwtTokenProvider.generateJwtTokenByUserId(user.getId(), isAdmin);
+            String jwtToken = jwtTokenProvider.generateJwtTokenByUserId(user);
             response.setAccessToken("Bearer " + jwtToken);
             response.setUserId(user.getId());
             return new ResponseEntity<>(response, HttpStatus.OK);

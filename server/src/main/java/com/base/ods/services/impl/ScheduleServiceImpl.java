@@ -17,18 +17,20 @@ import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Log4j2
 public class ScheduleServiceImpl implements IScheduleService {
     private ScheduleRepository scheduleRepository;
     private IUserService userService;
@@ -37,8 +39,15 @@ public class ScheduleServiceImpl implements IScheduleService {
     private JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public List<ScheduleResponseDTO> getAllSchedules(Pageable pageable) {
-        Page<Schedule> scheduleList = scheduleRepository.findAll(pageable);
+    public List<ScheduleResponseDTO> getAllSchedules(List<Long> userIds, Pageable pageable) {
+        Page<Schedule> scheduleList;
+        if (userIds.isEmpty()) {
+            scheduleList = scheduleRepository.findAll(pageable);
+        } else {
+            List<Schedule> calendars = scheduleRepository.findAllSchedulesByUserIdIn(userIds);
+            scheduleList = new PageImpl<>(calendars, pageable, calendars.size());
+        }
+        
         List<ScheduleResponseDTO> responseDTO = mapper.convert(scheduleList);
         return responseDTO;
     }
@@ -51,12 +60,20 @@ public class ScheduleServiceImpl implements IScheduleService {
 
     @Override
     public ScheduleResponseDTO getUserActiveSchedule(ScheduleGetFromUserIdDTO scheduleGetFromUserIdDTO) {
-        Schedule schedule = scheduleRepository.findActiveScheduleByUserIdAndDateYearAndDateMonth(scheduleGetFromUserIdDTO.getUserId(), scheduleGetFromUserIdDTO.getDateYear(), scheduleGetFromUserIdDTO.getDateMonth());
-        if (schedule == null) {
+        List<Schedule> schedules = scheduleRepository.findActiveScheduleByUserId(scheduleGetFromUserIdDTO.getUserId());
+        if (schedules.isEmpty()) {
             return null;
         }
 
-        ScheduleResponseDTO responseDTO = mapper.toDTO(schedule);
+        Optional<Schedule> activeSchedule = schedules.stream()
+            .filter(schedule -> schedule.getDateMonth().equals(scheduleGetFromUserIdDTO.getDateMonth()) && schedule.getDateYear().equals(scheduleGetFromUserIdDTO.getDateYear()))
+            .findFirst();
+        
+        if (activeSchedule.isEmpty()) {
+            return null;
+        }
+
+        ScheduleResponseDTO responseDTO = mapper.toDTO(activeSchedule.get());
         return responseDTO;
     }
 
@@ -76,6 +93,15 @@ public class ScheduleServiceImpl implements IScheduleService {
         
         if (!jwtTokenProvider.hasPermission(headers.get("authorization").substring(7), schedule.getUser().getId())) {
             return null;
+        }
+
+        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
+            Long managerId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
+            UserResponseDTO managerUserData = userService.getUserById(managerId);
+            if (managerUserData.getDepartmentId() != schedule.getUser().getDepartment().getId()) {
+                return null;
+            }
         }
 
         UserResponseDTO userResponseDTO = userService.getUserById(schedule.getUser().getId());

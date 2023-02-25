@@ -37,7 +37,7 @@ const MenuList = () => {
         })
     }, [])
 
-    const navItemList = userRole === "MANAGER" ? adminMenuItems : userMenuItems;
+    const navItemList = userRole === "SUPER_USER" || userRole === "MANAGER" ? adminMenuItems : userMenuItems;
 
     const navItems = navItemList.items.map((item) => {
         switch (item.type) {

@@ -1,6 +1,5 @@
 package com.base.ods.services.impl;
 
-import com.base.ods.controllers.requests.UserInfoFromTokenRequest;
 import com.base.ods.domain.*;
 import com.base.ods.enums.Status;
 import com.base.ods.exception.EntityNotFoundException;
@@ -27,7 +26,6 @@ import com.base.ods.services.responses.ZoneResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,7 +44,6 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Log4j2
 public class UserServiceImpl implements IUserService {
     private UserRepository userRepository;
     private IDepartmentService departmentService;
@@ -62,10 +59,12 @@ public class UserServiceImpl implements IUserService {
     private IRefreshTokenService refreshTokenService;
 
     @Override
-    public List<UserResponseDTO> getAllUsers(Optional<Status> status, Pageable pageable) {
+    public List<UserResponseDTO> getAllUsers(Optional<Long> departmentId, Optional<Status> status, Pageable pageable) {
         Page<User> userList;
-        if (status.isPresent()) {
+        if (status != null && status.isPresent()) {
             userList = userRepository.findAllByStatus(status.get(), pageable);
+        } else if (departmentId != null && departmentId.isPresent()) {
+            userList = userRepository.findAllByDepartmentId(departmentId.get(), pageable);
         } else {
             userList = userRepository.findAll(pageable);
         }

@@ -152,8 +152,8 @@ export default {
     ],
 
     scheduleDetailsColumns: [
-        { field: 'id', headerName: 'ID', width: 100, sortable: false },
-        { field: 'officeDay', headerName: 'Office Day', width: 250, sortable: false },
-        { field: 'day', headerName: 'Day', width: 200, sortable: false }
+        { field: 'id', headerName: 'ID', width: 100, sortable: false, filter: false },
+        { field: 'officeDay', headerName: 'Office Day', width: 250, sortable: false, filter: false },
+        { field: 'day', headerName: 'Day', width: 200, sortable: false, filter: false },
     ]
 }

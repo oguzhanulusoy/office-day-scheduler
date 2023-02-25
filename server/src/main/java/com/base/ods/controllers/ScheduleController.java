@@ -8,20 +8,26 @@ import com.base.ods.controllers.responses.ScheduleResponse;
 import com.base.ods.mapper.ScheduleResponseToDTOMapper;
 import com.base.ods.security.JwtTokenProvider;
 import com.base.ods.services.IScheduleService;
+import com.base.ods.services.IUserService;
 import com.base.ods.services.requests.ScheduleCreateRequestDTO;
 import com.base.ods.services.requests.ScheduleGetFromUserIdDTO;
 import com.base.ods.services.requests.ScheduleUpdateRequestDTO;
 import com.base.ods.services.responses.ScheduleResponseDTO;
+import com.base.ods.services.responses.UserResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/schedule")
@@ -30,10 +36,21 @@ public class ScheduleController {
     private IScheduleService scheduleService;
     private JwtTokenProvider jwtTokenProvider;
     private ScheduleResponseToDTOMapper mapper;
+    private IUserService userService;
 
     @GetMapping
-    public ResponseEntity<List<ScheduleResponse>> getAllSchedules(Pageable pageable) {
-        List<ScheduleResponseDTO> responseDTO = scheduleService.getAllSchedules(pageable);
+    public ResponseEntity<List<ScheduleResponse>> getAllSchedules(@RequestHeader Map<String, String> headers, Pageable pageable) {
+        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        List<Long> userIds = new ArrayList<>();
+        if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
+            Long userId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
+            UserResponseDTO userDTO = userService.getUserById(userId);
+            List<UserResponseDTO> users = userService.getAllUsers(Optional.of(userDTO.getDepartmentId()), null, pageable);
+            for (UserResponseDTO user : users) {
+                userIds.add(user.getId());
+            }
+        }
+        List<ScheduleResponseDTO> responseDTO = scheduleService.getAllSchedules(userIds, pageable);
         List<ScheduleResponse> result = mapper.toResponseList(responseDTO);
         return ResponseEntity.ok(result);
     }

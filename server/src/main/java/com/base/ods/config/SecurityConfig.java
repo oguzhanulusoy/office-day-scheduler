@@ -36,12 +36,10 @@ public class SecurityConfig {
         "/outofofficeday/**",
         "/calendar/**",
     };
-
+    
     private static final String[] EMPLOYEE_GET_AUTH_LIST = {
         "/user/{id}",
-        "/schedule",
         "/outofofficeday",
-        "/calendar",
     };
 
     private static final String[] EMPLOYEE_POST_AUTH_LIST = {
@@ -111,7 +109,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.GET, EMPLOYEE_GET_AUTH_LIST).authenticated()
                 .antMatchers(HttpMethod.POST, EMPLOYEE_POST_AUTH_LIST).authenticated()
                 .antMatchers(HttpMethod.PUT, EMPLOYEE_PUT_AUTH_LIST).authenticated()
-                .antMatchers(ADMIN_AUTH_LIST).hasAnyAuthority("MANAGER")
+                .antMatchers(ADMIN_AUTH_LIST).hasAnyAuthority("SUPER_USER", "MANAGER")
                 .anyRequest().authenticated();
 
         httpSecurity.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
