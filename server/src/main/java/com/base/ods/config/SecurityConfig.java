@@ -3,7 +3,6 @@ package com.base.ods.config;
 
 import com.base.ods.security.JwtAuthenticationEntryPoint;
 import com.base.ods.security.JwtAuthenticationFilter;
-import com.base.ods.services.impl.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,7 +24,6 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private UserDetailsServiceImpl userDetailsService;
     private JwtAuthenticationEntryPoint handler;
     private static final String[] ADMIN_AUTH_LIST = {
         "/role/**",
@@ -58,8 +56,7 @@ public class SecurityConfig {
         "/user/change-password"
     };
 
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationEntryPoint handler) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(JwtAuthenticationEntryPoint handler) {
         this.handler = handler;
     }
 

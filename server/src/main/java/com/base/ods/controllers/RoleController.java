@@ -11,6 +11,7 @@ import com.base.ods.services.responses.RoleResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -23,7 +24,7 @@ public class RoleController {
     private IRoleService roleService;
     private RoleResponseToDTOMapper mapper;
 
-    //@PreAuthorize("hasAuthority('SUPER_USER')")
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @GetMapping
     public ResponseEntity<List<RoleResponse>> getAllRoles() {
         List<RoleResponseDTO> responseDTO = roleService.getAllRoles();
@@ -31,7 +32,7 @@ public class RoleController {
         return ResponseEntity.ok(result);
     }
 
-    //@PreAuthorize("hasAuthority('SUPER_USER')")
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> getRoleById(@PathVariable Long id) {
         RoleResponseDTO responseDTO = roleService.getRoleById(id);
@@ -39,7 +40,7 @@ public class RoleController {
         return ResponseEntity.ok(result);
     }
 
-    //@PreAuthorize("hasAuthority('SUPER_USER')")
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PostMapping
     public ResponseEntity<RoleResponse> createRole(@Valid @RequestBody RoleCreateRequest roleCreateRequest) {
         RoleCreateRequestDTO requestDTO = mapper.toDTO(roleCreateRequest);
@@ -48,7 +49,7 @@ public class RoleController {
         return ResponseEntity.ok(result);
     }
 
-    //@PreAuthorize("hasAuthority('SUPER_USER')")
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<RoleResponse> updateRole(@Valid @RequestBody RoleUpdateRequest roleUpdateRequest) {
         RoleUpdateRequestDTO requestDTO = mapper.toDTO(roleUpdateRequest);
@@ -57,7 +58,7 @@ public class RoleController {
         return ResponseEntity.ok(result);
     }
 
-    //@PreAuthorize("hasAuthority('SUPER_USER')")
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @DeleteMapping
     public void deleteRolesByIds(@RequestBody IdWrapper ids) {
         roleService.deleteRolesByIds(ids);

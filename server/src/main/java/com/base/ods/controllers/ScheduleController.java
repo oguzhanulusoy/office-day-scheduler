@@ -18,6 +18,7 @@ import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,7 @@ public class ScheduleController {
 
     @GetMapping
     public ResponseEntity<List<ScheduleResponse>> getAllSchedules(@RequestHeader Map<String, String> headers, Pageable pageable) {
-        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        GrantedAuthority userRole = jwtTokenProvider.getRoleFromToken(headers.get("authorization").substring(7));
         List<Long> userIds = new ArrayList<>();
         if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
             Long userId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
@@ -121,6 +122,7 @@ public class ScheduleController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @DeleteMapping
     public void deleteScheduleById(@RequestBody IdWrapper ids) {
         scheduleService.deleteSchedulesByIds(ids);

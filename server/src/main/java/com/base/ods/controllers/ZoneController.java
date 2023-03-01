@@ -13,6 +13,7 @@ import com.base.ods.services.responses.ZoneResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,6 +40,7 @@ public class ZoneController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PostMapping
     public ResponseEntity<ZoneResponse> createZone(@Valid @RequestBody ZoneCreateRequest zoneCreateRequest) {
         ZoneCreateRequestDTO requestDTO = mapper.toDTO(zoneCreateRequest);
@@ -47,6 +49,7 @@ public class ZoneController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<ZoneResponse> updateZone(@Valid @RequestBody ZoneUpdateRequest zoneUpdateRequest) {
         ZoneUpdateRequestDTO requestDTO = mapper.toDTO(zoneUpdateRequest);
@@ -55,6 +58,7 @@ public class ZoneController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @DeleteMapping
     public ResponseEntity<ZoneDeleteResponse> deleteZone(@RequestBody IdWrapper ids) {
         ZoneDeleteResponseDTO responseDTO = zoneService.deleteZonesByIds(ids);

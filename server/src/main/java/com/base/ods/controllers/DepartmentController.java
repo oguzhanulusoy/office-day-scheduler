@@ -12,6 +12,7 @@ import com.base.ods.services.responses.DepartmentResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -38,6 +39,7 @@ public class DepartmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PostMapping
     public ResponseEntity<DepartmentResponse> createDepartment(@Valid @RequestBody DepartmentCreateRequest departmentCreateRequest) {
         DepartmentCreateRequestDTO requestDTO = mapper.toDTO(departmentCreateRequest);
@@ -46,6 +48,7 @@ public class DepartmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentUpdateRequest departmentUpdateRequest) {
         DepartmentUpdateRequestDTO requestDTO = mapper.toDTO(departmentUpdateRequest);
@@ -54,6 +57,7 @@ public class DepartmentController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @DeleteMapping
     public void deleteDepartments(@RequestBody IdWrapper ids) {
         departmentService.deleteDepartmentsByIds(ids);

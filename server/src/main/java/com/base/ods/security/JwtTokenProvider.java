@@ -70,7 +70,7 @@ public class JwtTokenProvider {
         return expiration.before(new Date());
     }
 
-    public GrantedAuthority getRolesFromToken(String token) {
+    public GrantedAuthority getRoleFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(APP_SECRET).parseClaimsJws(token).getBody();
         GrantedAuthority role = null;
         
@@ -90,7 +90,7 @@ public class JwtTokenProvider {
     }
 
     public boolean hasPermission(String token, Long userId) {
-        GrantedAuthority userRole = this.getRolesFromToken(token);
+        GrantedAuthority userRole = this.getRoleFromToken(token);
         if (userRole.equals(new SimpleGrantedAuthority("SUPER_USER")))
             return true;
         else if (userRole.equals(new SimpleGrantedAuthority("MANAGER")))

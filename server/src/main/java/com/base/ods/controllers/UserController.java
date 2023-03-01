@@ -39,7 +39,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers(@RequestHeader Map<String, String> headers, @RequestParam Optional<Status> status, Pageable pageable) {
-        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        GrantedAuthority userRole = jwtTokenProvider.getRoleFromToken(headers.get("authorization").substring(7));
         Optional<Long> departmentId = null;
         if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
             Long userId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));

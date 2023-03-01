@@ -11,6 +11,7 @@ import com.base.ods.services.responses.OutOfOfficeDayResponseDTO;
 import com.base.ods.util.IdWrapper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -38,6 +39,7 @@ public class OutOfOfficeDayController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PostMapping
     public ResponseEntity<OutOfOfficeDayResponse> createOutOfOfficeDay(@Valid @RequestBody OutOfOfficeDayCreateRequest outOfOfficeDayCreateRequest) {
         OutOfOfficeDayCreateRequestDTO requestDTO = mapper.toDTO(outOfOfficeDayCreateRequest);
@@ -46,6 +48,7 @@ public class OutOfOfficeDayController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<OutOfOfficeDayResponse> updateOutOfOfficeDay(@Valid @RequestBody OutOfOfficeDayUpdateRequest outOfOfficeDayUpdateRequest) {
         OutOfOfficeDayUpdateRequestDTO requestDTO = mapper.toDTO(outOfOfficeDayUpdateRequest);
@@ -54,6 +57,7 @@ public class OutOfOfficeDayController {
         return ResponseEntity.ok(result);
     }
 
+    @PreAuthorize("hasAuthority('SUPER_USER')")
     @DeleteMapping
     public void deleteOutOfOfficeDays(@RequestBody IdWrapper ids) {
         outOfOfficeDayService.deleteOutOfOfficeDaysByIds(ids);

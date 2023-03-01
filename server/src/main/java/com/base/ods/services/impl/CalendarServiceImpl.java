@@ -113,7 +113,7 @@ public class CalendarServiceImpl implements ICalendarService {
             return null;
         }
 
-        GrantedAuthority userRole = jwtTokenProvider.getRolesFromToken(headers.get("authorization").substring(7));
+        GrantedAuthority userRole = jwtTokenProvider.getRoleFromToken(headers.get("authorization").substring(7));
         if (userRole.equals(new SimpleGrantedAuthority("MANAGER"))) {
             Long managerId = jwtTokenProvider.getUserIdFromJwt(headers.get("authorization").substring(7));
             UserResponseDTO managerUserData = userService.getUserById(managerId);
