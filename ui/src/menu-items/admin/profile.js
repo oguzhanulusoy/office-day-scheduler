@@ -1,7 +1,5 @@
-// assets
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-// constant
-const icons = { KeyboardArrowRightIcon };
+import User from '@mui/icons-material/Person';
+const icons = { User };
 
 // ==============================|| PROFILE MENU ITEMS ||============================== //
 
@@ -14,7 +12,7 @@ const profile = {
             title: 'Profile',
             type: 'item',
             url: '/user/profile',
-            icon: icons.KeyboardArrowRightIcon,
+            icon: icons.User,
             breadcrumbs: false
         }
     ]

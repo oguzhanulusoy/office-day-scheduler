@@ -197,10 +197,14 @@ function ZonePage() {
 
   
   let columns = zonePageConfig.zonePageColumns;
-  columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
-    return (
-      <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadZone(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
-    );
+  if (sessionStorage.getItem('userRole') !== 'SUPER_USER' ) {
+    columns[columns.length - 1].options.display = false;
+  } else {
+    columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
+      return (
+        <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadZone(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
+      );
+    }
   }
 
   const getZoneData = () => {
@@ -243,16 +247,25 @@ function ZonePage() {
       })
   }, [])
 
-  const options = {
-    filterType: 'dropdown',
-    onRowSelectionChange: (currentSelect, allSelected) => {
-      const result = allSelected.map(item => { return rows.at(item.index) });
-      const selectedIds = result.map(item => {
-        return item.id;
-      });
-      setSelectedIdList(selectedIds);
-    },
-    onRowsDelete: () => handleDelete(),
+  let options = {};
+
+  if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
+    options = {
+      filterType: 'dropdown',
+      selectableRows: 'none',
+    }
+  } else {
+    options = {
+      filterType: 'dropdown',
+      onRowSelectionChange: (currentSelect, allSelected) => {
+        const result = allSelected.map(item => { return rows.at(item.index) });
+        const selectedIds = result.map(item => {
+          return item.id;
+        });
+        setSelectedIdList(selectedIds);
+      },
+      onRowsDelete: () => handleDelete(),
+    }
   }
 
   if (error) {
@@ -265,7 +278,10 @@ function ZonePage() {
       <ThemeProvider theme={getMuiTheme()}>
         <h2>Zone List</h2>
         <Divider />
-        <Button variant="outlined" style={{ margin: 8, backgroundColor: "white", color: "black", borderColor: "white", textTransform: 'none' }} onClick={() => handleCreateOpen()}><AddCircleOutlineIcon></AddCircleOutlineIcon></Button>
+        {sessionStorage.getItem('userRole') === 'SUPER_USER' ? (
+          <Button variant="outlined" style={{ margin: 8, backgroundColor: "white", color: "black", borderColor: "white", textTransform: 'none' }} onClick={() => handleCreateOpen()}><AddCircleOutlineIcon></AddCircleOutlineIcon></Button>
+        ) : <div></div>}
+        
         <MUIDataTable columns={columns} data={rows} options={options} />
         <div>
           <Modal

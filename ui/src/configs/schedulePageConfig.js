@@ -139,6 +139,7 @@ export default {
         {
             name: "detail",
             label: "See Details",
+            visible: false,
             options: {
                 filter: false,
                 sort: false,

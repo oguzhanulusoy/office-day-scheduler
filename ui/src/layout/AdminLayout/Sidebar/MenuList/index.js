@@ -1,14 +1,53 @@
 // material-ui
 import { Typography } from '@mui/material';
+import { useState } from 'react';
+import ServiceCaller from 'services/ServiceCaller';
+import { useNavigate } from 'react-router-dom'; 
+import JWTUtil from 'utils/jwtUtil';
+import { useEffect } from 'react';
 
 // project imports
 import NavGroup from './NavGroup';
-import menuItem from 'menu-items/admin';
+import adminMenuItems from 'menu-items/admin';
+import managerMenuItems from 'menu-items/manager';
+import userMenuItems from 'menu-items/user';
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-    const navItems = menuItem.items.map((item) => {
+    const navigate = useNavigate();
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        const serviceCaller = new ServiceCaller();
+        JWTUtil.validateStorage(serviceCaller)
+        .then(async (response) => {
+            if (!response) {
+                navigate('/', { replace: true });
+                return 
+            }
+
+            const res = await JWTUtil.confirmJWT(serviceCaller);
+            if (res === null) {
+                navigate('/', { replace: true });
+                return;
+            }
+
+            setUserRole(res.role);
+        })
+    }, [])
+
+    let navItemList;
+
+    if (userRole === "SUPER_USER") {
+        navItemList = adminMenuItems;
+    } else if (userRole === "MANAGER") {
+        navItemList = managerMenuItems;
+    } else {
+        navItemList = userMenuItems;
+    }
+
+    const navItems = navItemList.items.map((item) => {
         switch (item.type) {
             case 'group':
                 return <NavGroup key={item.id} item={item} />;

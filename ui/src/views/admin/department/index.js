@@ -19,6 +19,7 @@ import JWTUtil from 'utils/jwtUtil';
 import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import { toast } from "react-toastify";
+import DepartmentPageConfig from 'configs/departmentPageConfig.js';
 function DepartmentPage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -77,81 +78,37 @@ function DepartmentPage() {
       }
     });
 
-  const columns = [
-    {
-      name: "departmentCode",
-      label: "Department Code",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "departmentManagerFirstName",
-      label: "Department Manager Name",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "departmentManagerLastName",
-      label: "Department Manager Surname",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "groupCode",
-      label: "Group Code",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "groupManagerFirstName",
-      label: "Group Manager Name",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "groupManagerLastName",
-      label: "Group Manager Surname",
-      options: {
-        filter: true,
-        sort: true
-      }
-    },
-    {
-      name: "edit",
-      label: "Edit",
-      options: {
-        filter: false,
-        sort: false,
-        customBodyRenderLite: (dataIndex) => {
-          return (
-            <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDepartment(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
-          );
-        }
-      }
-    }
-  ];
-
-  const options = {
-    filterType: 'dropdown',
-    onRowSelectionChange: (currentSelect, allSelected) => {
-      const result = allSelected.map(item => { return rows.at(item.index) });
-      const selectedIds = result.map(item => {
-        return item.id;
-      });
-      setSelectedIdList(selectedIds);
-    },
-    onRowsDelete: () => { handleDelete() },
+  const columns = DepartmentPageConfig.departmentPageColumns;
+  if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
+    columns[columns.length - 1].options.display = false;
   }
+
+  columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
+    return (
+      <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDepartment(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
+    );
+  }
+
+  let options = {};
+  if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
+    options = {
+      filterType: 'dropdown',
+      selectableRows: 'none',
+    }
+  } else {
+    options = {
+      filterType: 'dropdown',
+      onRowSelectionChange: (currentSelect, allSelected) => {
+        const result = allSelected.map(item => { return rows.at(item.index) });
+        const selectedIds = result.map(item => {
+          return item.id;
+        });
+        setSelectedIdList(selectedIds);
+      },
+      onRowsDelete: () => { handleDelete() },
+    }
+  }
+
   const handleDelete = () => {
     let serviceCaller = new ServiceCaller();
     DepartmentService.deleteDepartment(serviceCaller, { ids: selectedIdList })
@@ -469,7 +426,9 @@ function DepartmentPage() {
           </Modal>
         </div>
         <Divider />
-        <Button onClick={handleCreateOpen} variant="outlined" style={{ margin: 8, backgroundColor: "white", color: "black", borderColor: "white", textTransform: 'none' }}><AddCircleOutlineIcon></AddCircleOutlineIcon></Button>
+        {sessionStorage.getItem("userRole") === "SUPER_USER" ? (
+          <Button onClick={handleCreateOpen} variant="outlined" style={{ margin: 8, backgroundColor: "white", color: "black", borderColor: "white", textTransform: 'none' }}><AddCircleOutlineIcon></AddCircleOutlineIcon></Button>
+        ) : <div></div>}
         <MUIDataTable columns={columns} data={rows} options={options} />
       </ThemeProvider>
     );

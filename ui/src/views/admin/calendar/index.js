@@ -36,6 +36,14 @@ class CalendarPageHelper {
   }
 
   prepareOptions() {
+    if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
+      this.options = {
+        filterType: 'dropdown',
+        selectableRows: 'none',
+      }
+      
+      return
+    }
     this.options = {
       filterType: 'dropdown',
       onRowSelectionChange: (currentSelect, allSelected) => {           

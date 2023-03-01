@@ -64,6 +64,10 @@ function UserPage() {
     });
 
   const columns = UserPageConfig.userListPageColumns;
+  if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
+    columns[columns.length - 1].options.display = false;
+  }
+
   columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
     return (
       <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadUser(rows[dataIndex].id) }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>

@@ -206,16 +206,25 @@ function SchedulePage() {
     return dateName;
   }
 
-  const options = {
-    filterType: 'dropdown',
-    onRowSelectionChange: (currentSelect, allSelected) => {
-      const result = allSelected.map(item => { return rows.at(item.index) });
-      const selectedIds = result.map(item => {
-        return item.id;
-      });
-      setSelectedIdList(selectedIds);
-    },
-    onRowsDelete: () => { handleDelete() },
+  let options = {};
+
+  if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
+    options = {
+      filterType: 'dropdown',
+      selectableRows: 'none',
+    }
+  } else {
+    options = {
+      filterType: 'dropdown',
+      onRowSelectionChange: (currentSelect, allSelected) => {
+        const result = allSelected.map(item => { return rows.at(item.index) });
+        const selectedIds = result.map(item => {
+          return item.id;
+        });
+        setSelectedIdList(selectedIds);
+      },
+      onRowsDelete: () => { handleDelete() },
+    }
   }
 
   const getMonthNumberFromName = (monthName) => {

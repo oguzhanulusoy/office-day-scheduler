@@ -1,7 +1,5 @@
-// assets
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-// constant
-const icons = { KeyboardArrowRightIcon };
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+const icons = { CalendarMonthIcon };
 
 // ==============================|| MY SCHEDULE MENU ITEMS ||============================== //
 
@@ -14,7 +12,7 @@ const myschedule = {
             title: 'My Schedule',
             type: 'item',
             url: '/user/myschedule',
-            icon: icons.KeyboardArrowRightIcon,
+            icon: icons.CalendarMonthIcon,
             breadcrumbs: false
         }
     ]

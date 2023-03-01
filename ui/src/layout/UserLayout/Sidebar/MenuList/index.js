@@ -5,6 +5,7 @@ import { Typography } from '@mui/material';
 import NavGroup from './NavGroup';
 import userMenuItems from 'menu-items/user';
 import adminMenuItems from 'menu-items/admin';
+import managerMenuItems from 'menu-items/manager';
 import { useState } from 'react';
 
 import ServiceCaller from 'services/ServiceCaller';
@@ -37,7 +38,15 @@ const MenuList = () => {
         })
     }, [])
 
-    const navItemList = userRole === "SUPER_USER" || userRole === "MANAGER" ? adminMenuItems : userMenuItems;
+    let navItemList;
+
+    if (userRole === "SUPER_USER") {
+        navItemList = adminMenuItems;
+    } else if (userRole === "MANAGER") {
+        navItemList = managerMenuItems;
+    } else {
+        navItemList = userMenuItems;
+    }
 
     const navItems = navItemList.items.map((item) => {
         switch (item.type) {
