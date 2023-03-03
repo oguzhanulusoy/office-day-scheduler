@@ -9,9 +9,10 @@ import managerMenuItems from 'menu-items/manager';
 import { useState } from 'react';
 
 import ServiceCaller from 'services/ServiceCaller';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import JWTUtil from 'utils/jwtUtil';
 import { useEffect } from 'react';
+import NavCollapse from './NavCollapse';
 
 // ==============================|| SIDEBAR MENU LIST ||============================== //
 
@@ -22,20 +23,20 @@ const MenuList = () => {
     useEffect(() => {
         const serviceCaller = new ServiceCaller();
         JWTUtil.validateStorage(serviceCaller)
-        .then(async (response) => {
-            if (!response) {
-                navigate('/', { replace: true });
-                return 
-            }
+            .then(async (response) => {
+                if (!response) {
+                    navigate('/', { replace: true });
+                    return
+                }
 
-            const res = await JWTUtil.confirmJWT(serviceCaller);
-            if (res === null) {
-                navigate('/', { replace: true });
-                return;
-            }
+                const res = await JWTUtil.confirmJWT(serviceCaller);
+                if (res === null) {
+                    navigate('/', { replace: true });
+                    return;
+                }
 
-            setUserRole(res.role);
-        })
+                setUserRole(res.role);
+            })
     }, [])
 
     let navItemList;
@@ -50,8 +51,10 @@ const MenuList = () => {
 
     const navItems = navItemList.items.map((item) => {
         switch (item.type) {
-            case 'group':
+            case 'single':
                 return <NavGroup key={item.id} item={item} />;
+            case 'group':
+                return <NavCollapse key={item.id} menu={item} level={1} />;
             default:
                 return (
                     <Typography key={item.id} variant="h6" color="error" align="center">

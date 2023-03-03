@@ -5,7 +5,7 @@ const icons = { CalendarMonthIcon };
 
 const myschedule = {
     id: 'myschedule-group',
-    type: 'group',
+    type: 'single',
     children: [
         {
             id: 'myschedule',

@@ -5,7 +5,7 @@ const icons = { User };
 
 const profile = {
     id: 'profile-group',
-    type: 'group',
+    type: 'single',
     children: [
         {
             id: 'profile',

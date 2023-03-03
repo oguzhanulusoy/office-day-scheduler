@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 
 // project imports
 import NavGroup from './NavGroup';
+import NavCollapse from './NavCollapse';
 import adminMenuItems from 'menu-items/admin';
 import managerMenuItems from 'menu-items/manager';
 import userMenuItems from 'menu-items/user';
@@ -49,8 +50,10 @@ const MenuList = () => {
 
     const navItems = navItemList.items.map((item) => {
         switch (item.type) {
-            case 'group':
+            case 'single':
                 return <NavGroup key={item.id} item={item} />;
+            case 'group':
+                return <NavCollapse key={item.id} menu={item} level={1} />;
             default:
                 return (
                     <Typography key={item.id} variant="h6" color="error" align="center">
