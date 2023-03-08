@@ -3,6 +3,7 @@ package com.base.ods.controllers;
 import com.base.ods.controllers.requests.RoleCreateRequest;
 import com.base.ods.controllers.requests.RoleUpdateRequest;
 import com.base.ods.controllers.responses.RoleResponse;
+import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.RoleResponseToDTOMapper;
 import com.base.ods.services.IRoleService;
 import com.base.ods.services.requests.RoleCreateRequestDTO;
@@ -24,7 +25,6 @@ public class RoleController {
     private IRoleService roleService;
     private RoleResponseToDTOMapper mapper;
 
-    @PreAuthorize("hasAuthority('SUPER_USER')")
     @GetMapping
     public ResponseEntity<List<RoleResponse>> getAllRoles() {
         List<RoleResponseDTO> responseDTO = roleService.getAllRoles();
@@ -32,7 +32,6 @@ public class RoleController {
         return ResponseEntity.ok(result);
     }
 
-    @PreAuthorize("hasAuthority('SUPER_USER')")
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> getRoleById(@PathVariable Long id) {
         RoleResponseDTO responseDTO = roleService.getRoleById(id);
@@ -52,10 +51,16 @@ public class RoleController {
     @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<RoleResponse> updateRole(@Valid @RequestBody RoleUpdateRequest roleUpdateRequest) {
-        RoleUpdateRequestDTO requestDTO = mapper.toDTO(roleUpdateRequest);
-        RoleResponseDTO responseDTO = roleService.updateRole(requestDTO);
-        RoleResponse result = mapper.toResponse(responseDTO);
-        return ResponseEntity.ok(result);
+        try {
+            RoleUpdateRequestDTO requestDTO = mapper.toDTO(roleUpdateRequest);
+            RoleResponseDTO responseDTO = roleService.updateRole(requestDTO);
+            RoleResponse result = mapper.toResponse(responseDTO);
+            return ResponseEntity.ok(result);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PreAuthorize("hasAuthority('SUPER_USER')")

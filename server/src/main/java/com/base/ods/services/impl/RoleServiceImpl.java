@@ -13,7 +13,6 @@ import com.base.ods.services.requests.RoleUpdateRequestDTO;
 import com.base.ods.services.responses.RoleResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Log4j2
 public class RoleServiceImpl implements IRoleService {
     private RoleRepository roleRepository;
     private RoleEntityToDTOMapper mapper;
@@ -59,7 +57,7 @@ public class RoleServiceImpl implements IRoleService {
 
     @Override
     public RoleResponseDTO updateRole(RoleUpdateRequestDTO roleUpdateRequestDTO) {
-        Role role = roleRepository.findById(roleUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.ROLE_NOT_FOUND + roleUpdateRequestDTO.getId()));
+        roleRepository.findById(roleUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.ROLE_NOT_FOUND + roleUpdateRequestDTO.getId()));
         Role toUpdate = mapper.toEntity(roleUpdateRequestDTO);
         Role result = roleRepository.save(toUpdate);
         return mapper.toDTO(result);

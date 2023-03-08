@@ -4,6 +4,7 @@ package com.base.ods.controllers;
 import com.base.ods.controllers.requests.DepartmentCreateRequest;
 import com.base.ods.controllers.requests.DepartmentUpdateRequest;
 import com.base.ods.controllers.responses.DepartmentResponse;
+import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.DepartmentResponseToDTOMapper;
 import com.base.ods.services.IDepartmentService;
 import com.base.ods.services.requests.DepartmentCreateRequestDTO;
@@ -51,10 +52,16 @@ public class DepartmentController {
     @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<DepartmentResponse> updateDepartment(@Valid @RequestBody DepartmentUpdateRequest departmentUpdateRequest) {
-        DepartmentUpdateRequestDTO requestDTO = mapper.toDTO(departmentUpdateRequest);
-        DepartmentResponseDTO responseDTO = departmentService.updateDepartment(requestDTO);
-        DepartmentResponse result = mapper.toResponse(responseDTO);
-        return ResponseEntity.ok(result);
+        try {
+            DepartmentUpdateRequestDTO requestDTO = mapper.toDTO(departmentUpdateRequest);
+            DepartmentResponseDTO responseDTO = departmentService.updateDepartment(requestDTO);
+            DepartmentResponse result = mapper.toResponse(responseDTO);
+            return ResponseEntity.ok(result);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PreAuthorize("hasAuthority('SUPER_USER')")

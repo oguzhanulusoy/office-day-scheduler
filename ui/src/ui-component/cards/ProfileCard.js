@@ -4,7 +4,6 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 
 function OutlinedCard({ user, outOfOfficeDayList, userScheduleList }) {
-  console.log(userScheduleList)
   return (
       <Box display="flex" flexWrap="wrap">
         <React.Fragment>

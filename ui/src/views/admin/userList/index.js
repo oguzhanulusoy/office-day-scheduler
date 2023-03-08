@@ -19,11 +19,13 @@ import { hasPermission } from 'utils/generalUtils';
 import { toast } from 'react-toastify';
 import UserPageConfig from 'configs/userListPageConfig.js';
 import ZoneService from "services/zone/ZoneService";
+import RoleService from "services/role/RoleService";
 
 function UserPage() {
   const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [zoneList, setZoneList] = useState([]);
+  const [roleList, setRoleList] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(null);
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -31,12 +33,17 @@ function UserPage() {
     userId: '',
     zoneId: '',
     transportChoice: '',
+    userRole: '',
   });
 
-  const { userId, zoneId, transportChoice } = user;
+  const { userId, zoneId, transportChoice, userRole } = user;
 
   const handleUserZone = (event) => {
     setUser({ ...user, zoneId: event.target.value });
+  }
+
+  const handleUserRole = (event) => {
+    setUser({ ...user, userRole: event.target.value });
   }
 
   const onInputChange = (e) => {
@@ -49,7 +56,7 @@ function UserPage() {
 
   const handleUpdateClose = () => {
     setUpdateOpen(false);
-    setUser({ userId: '', zoneId: '', transportChoice: '' });
+    setUser({ userId: '', zoneId: '', transportChoice: '', userRole: '' });
   }
 
   const getMuiTheme = () =>
@@ -85,6 +92,7 @@ function UserPage() {
       userId: arr[0].id,
       zoneId: arr[0].zoneId,
       transportChoice: arr[0].transportChoice,
+      userRole: arr[0].roleId,
     })
   }
 
@@ -100,6 +108,26 @@ function UserPage() {
 
         if (res.status === 200) {
           setZoneList(res.data);
+        }
+      })
+      .catch(error => {
+        setIsLoaded(true);
+        setError(error);
+      })
+  }
+
+  const getRoles = () => {
+    let serviceCaller = new ServiceCaller();
+    RoleService.getRoles(serviceCaller, '')
+      .then(res => {
+        if (res.status === 401) {
+          toast.error("You are not authorized to access this page", { autoClose: 1000 });
+          navigate('/', { replace: true });
+          return
+        }
+
+        if (res.status === 200) {
+          setRoleList(res.data.filter((role) => role.roleName !== 'SUPER_USER'));
         }
       })
       .catch(error => {
@@ -135,6 +163,7 @@ function UserPage() {
       "id": parseInt(userId),
       "zoneId": parseInt(zoneId),
       "transportChoice": transportChoice,
+      "roleId": parseInt(userRole),
     }
 
     UserService.updateUser(serviceCaller, requestBody)
@@ -169,6 +198,7 @@ function UserPage() {
         if (!hasPermission(navigate)) return
 
         getZones();
+        getRoles();
         getUserData();
       })
       .catch(error => {
@@ -216,6 +246,25 @@ function UserPage() {
                         ))}
                       </Select>
                     </FormControl>
+                  </div>
+
+                  <div> {userRole === 1 ? <div></div> :
+                    <FormControl sx={{ m: 1, minWidth: 120 }}>
+                      <InputLabel id="demo-simple-select-helper-label">User Role</InputLabel>
+                      <Select
+                        labelId="demo-simple-select-helper-label"
+                        id="demo-simple-select-helper"
+                        value={userRole}
+                        label="User Role"
+                        onChange={handleUserRole}
+                        style={{ width: 210 }}
+                      >
+                        {roleList.map(role => (//role.id === 1 ? <MenuItem disabled key={role.id} value={role.id} > {role.roleName} </MenuItem> :
+                          <MenuItem key={role.id} value={role.id} > {role.roleName} </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  }
                   </div>
 
                   <TextField id="outlined-basic" name="transportChoice" label="Transportation" variant="outlined"

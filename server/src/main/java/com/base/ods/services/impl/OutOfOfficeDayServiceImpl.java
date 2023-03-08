@@ -11,7 +11,6 @@ import com.base.ods.services.responses.OutOfOfficeDayResponseDTO;
 import com.base.ods.util.IdWrapper;
 import com.base.ods.util.constants.Messages;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +18,6 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-@Log4j2
 public class OutOfOfficeDayServiceImpl implements IOutOfOfficeDayService {
     private OutOfOfficeDayRepository outOfOfficeDayRepository;
     private OutOfOfficeDayEntityToDTOMapper mapper;
@@ -45,7 +43,7 @@ public class OutOfOfficeDayServiceImpl implements IOutOfOfficeDayService {
 
     @Override
     public OutOfOfficeDayResponseDTO updateOutOfOfficeDay(OutOfOfficeDayUpdateRequestDTO outOfOfficeDay) {
-        OutOfOfficeDay officeDay = outOfOfficeDayRepository.findById(outOfOfficeDay.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.OUT_OF_OFFICE_DAY_NOT_FOUND + outOfOfficeDay.getId()));
+        outOfOfficeDayRepository.findById(outOfOfficeDay.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.OUT_OF_OFFICE_DAY_NOT_FOUND + outOfOfficeDay.getId()));
         OutOfOfficeDay toUpdate = mapper.toEntity(outOfOfficeDay);
         OutOfOfficeDay result = outOfOfficeDayRepository.save(toUpdate);
         return mapper.toDTO(result);

@@ -3,6 +3,7 @@ package com.base.ods.controllers;
 import com.base.ods.controllers.requests.OutOfOfficeDayCreateRequest;
 import com.base.ods.controllers.requests.OutOfOfficeDayUpdateRequest;
 import com.base.ods.controllers.responses.OutOfOfficeDayResponse;
+import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.OutOfOfficeDayResponseToDTOMapper;
 import com.base.ods.services.IOutOfOfficeDayService;
 import com.base.ods.services.requests.OutOfOfficeDayCreateRequestDTO;
@@ -51,10 +52,16 @@ public class OutOfOfficeDayController {
     @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<OutOfOfficeDayResponse> updateOutOfOfficeDay(@Valid @RequestBody OutOfOfficeDayUpdateRequest outOfOfficeDayUpdateRequest) {
-        OutOfOfficeDayUpdateRequestDTO requestDTO = mapper.toDTO(outOfOfficeDayUpdateRequest);
-        OutOfOfficeDayResponseDTO responseDTO = outOfOfficeDayService.updateOutOfOfficeDay(requestDTO);
-        OutOfOfficeDayResponse result = mapper.toResponse(responseDTO);
-        return ResponseEntity.ok(result);
+        try {
+            OutOfOfficeDayUpdateRequestDTO requestDTO = mapper.toDTO(outOfOfficeDayUpdateRequest);
+            OutOfOfficeDayResponseDTO responseDTO = outOfOfficeDayService.updateOutOfOfficeDay(requestDTO);
+            OutOfOfficeDayResponse result = mapper.toResponse(responseDTO);
+            return ResponseEntity.ok(result);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PreAuthorize("hasAuthority('SUPER_USER')")

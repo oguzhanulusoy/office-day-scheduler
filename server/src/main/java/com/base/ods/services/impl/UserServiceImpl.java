@@ -168,7 +168,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public UserResponseDTO updateUser(UserUpdateRequestDTO userUpdateRequestDTO) {
         User user = userRepository.findById(userUpdateRequestDTO.getId()).orElseThrow(() -> new EntityNotFoundException(Messages.USER_NOT_FOUND + userUpdateRequestDTO.getId()));
-        RoleResponseDTO roleDTO = roleService.getRoleById(user.getRole().getId());
+        RoleResponseDTO roleDTO = roleService.getRoleById(userUpdateRequestDTO.getRoleId());
         Role role = roleMapper.responseDTOToEntity(roleDTO);
         ZoneResponseDTO zoneDTO = zoneService.getZoneById(userUpdateRequestDTO.getZoneId());
         Zone zone = zoneMapper.responseDTOToEntity(zoneDTO);

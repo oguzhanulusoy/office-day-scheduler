@@ -4,6 +4,7 @@ import com.base.ods.controllers.requests.ZoneCreateRequest;
 import com.base.ods.controllers.requests.ZoneUpdateRequest;
 import com.base.ods.controllers.responses.ZoneDeleteResponse;
 import com.base.ods.controllers.responses.ZoneResponse;
+import com.base.ods.exception.EntityNotFoundException;
 import com.base.ods.mapper.ZoneResponseToDTOMapper;
 import com.base.ods.services.IZoneService;
 import com.base.ods.services.requests.ZoneCreateRequestDTO;
@@ -52,10 +53,16 @@ public class ZoneController {
     @PreAuthorize("hasAuthority('SUPER_USER')")
     @PutMapping
     public ResponseEntity<ZoneResponse> updateZone(@Valid @RequestBody ZoneUpdateRequest zoneUpdateRequest) {
-        ZoneUpdateRequestDTO requestDTO = mapper.toDTO(zoneUpdateRequest);
-        ZoneResponseDTO responseDTO = zoneService.updateZone(requestDTO);
-        ZoneResponse result = mapper.toResponse(responseDTO);
-        return ResponseEntity.ok(result);
+        try {
+            ZoneUpdateRequestDTO requestDTO = mapper.toDTO(zoneUpdateRequest);
+            ZoneResponseDTO responseDTO = zoneService.updateZone(requestDTO);
+            ZoneResponse result = mapper.toResponse(responseDTO);
+            return ResponseEntity.ok(result);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PreAuthorize("hasAuthority('SUPER_USER')")

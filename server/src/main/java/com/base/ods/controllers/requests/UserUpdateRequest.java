@@ -1,6 +1,5 @@
 package com.base.ods.controllers.requests;
 
-import com.base.ods.enums.Status;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -17,4 +16,6 @@ public class UserUpdateRequest {
     String transportChoice;
     @NotNull(message = "Zone Id is required")
     Long zoneId;
+    @NotNull(message = "Role Id is required")
+    Long roleId;
 }
