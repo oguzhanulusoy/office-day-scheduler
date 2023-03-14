@@ -1,0 +1,40 @@
+version: "3"
+services:
+  db:
+    container_name: ods-db
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+    networks:
+      - office-day-scheduler
+  backend:
+    depends_on:
+      - db
+    build: ./server
+    ports:
+      - '8090:8090'
+    environment:
+      - POSTGRES_URL=jdbc:postgresql://db:5432/office_day_scheduler
+    networks:
+      - office-day-scheduler
+  frontend:
+    depends_on:
+      - backend
+    build: ./ui
+    ports:
+      - '3000:3000'
+    networks:
+      - office-day-scheduler
+volumes:
+  db:
+    driver: local
+networks:
+  office-day-scheduler:
+    driver: bridge

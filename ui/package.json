@@ -2,7 +2,7 @@
     "name": "berry-material-react-free",
     "version": "3.2.0",
     "private": true,
-    "homepage": "http://localhost:3000/orion",
+    "homepage": "http://0.0.0.0:3000/orion",
     "dependencies": {
         "@emotion/cache": "^11.9.3",
         "@emotion/react": "^11.10.5",
@@ -92,5 +92,5 @@
         "prettier": "^2.7.1",
         "sass": "^1.53.0"
     },
-    "proxy": "http://localhost:8090"
+    "proxy": "http://backend:8090"
 }
