@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import { toast } from "react-toastify";
 import DepartmentPageConfig from 'configs/departmentPageConfig.js';
+import { useMemo } from "react";
 function DepartmentPage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -35,6 +36,7 @@ function DepartmentPage() {
   const [groupCode, setGroupCode] = useState('');
   const [groupManager, setGroupManager] = useState('');
   const [userList, setUserList] = useState([]);
+
   const handleDepartmentManager = (event) => {
     setDepartmentManager(event.target.value);
   };
@@ -78,16 +80,26 @@ function DepartmentPage() {
       }
     });
 
-  const columns = DepartmentPageConfig.departmentPageColumns;
-  if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
-    columns[columns.length - 1].options.display = false;
-  }
-
-  columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
-    return (
-      <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDepartment(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
-    );
-  }
+  const columns = useMemo(() => {
+    if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
+      return DepartmentPageConfig.departmentPageColumns;
+    } else {
+      return [...DepartmentPageConfig.departmentPageColumns, {
+        name: "edit",
+        label: "Edit",
+        options: {
+          filter: false,
+          sort: false,
+          display: true,
+          customBodyRenderLite: (dataIndex) => {
+            return (
+              <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDepartment(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
+            );
+          }
+        }
+      }];
+    }
+  })
 
   let options = {};
   if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {

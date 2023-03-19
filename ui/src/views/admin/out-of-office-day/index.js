@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { hasPermission } from 'utils/generalUtils';
 import { toast } from "react-toastify";
 import OutOfficeDayConfig from 'configs/outOfficeDayPageConfig.js';
+import { useMemo } from 'react';
 function OutOfOfficeDayPage() {
   const navigate = useNavigate();
   const [updateOpen, setUpdateOpen] = useState(false);
@@ -163,17 +164,26 @@ function OutOfOfficeDayPage() {
         }
       }
     });
-  
-  const columns = OutOfficeDayConfig.outOfficeDayPageColumns;
-  if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
-    columns[columns.length - 1].options.display = false;
-  }
 
-  columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
-    return (
-      <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDay(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }} /></Button>
-    )
-  }
+  const columns = useMemo(() => {
+    if (sessionStorage.getItem("userRole") !== 'SUPER_USER') {
+      return OutOfficeDayConfig.outOfficeDayPageColumns;
+    } else {
+      return [...OutOfficeDayConfig.outOfficeDayPageColumns, {
+        name: "edit",
+        label: "Edit",
+        options: {
+          filter: false,
+          sort: false,
+          customBodyRenderLite: (dataIndex) => {
+            return (
+              <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadDay(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }} /></Button>
+            )
+          }
+        }
+      }]
+    }
+  })
 
   const handleDelete = () => {
     let serviceCaller = new ServiceCaller();

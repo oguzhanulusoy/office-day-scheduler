@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import UserPageConfig from 'configs/userListPageConfig.js';
 import ZoneService from "services/zone/ZoneService";
 import RoleService from "services/role/RoleService";
+import { useMemo } from "react";
 
 function UserPage() {
   const navigate = useNavigate();
@@ -70,16 +71,25 @@ function UserPage() {
       }
     });
 
-  const columns = UserPageConfig.userListPageColumns;
-  if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
-    columns[columns.length - 1].options.display = false;
-  }
-
-  columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
-    return (
-      <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadUser(rows[dataIndex].id) }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
-    );
-  }
+  const columns = useMemo(() => {
+    if (sessionStorage.getItem('userRole') !== 'SUPER_USER') {
+      return UserPageConfig.userListPageColumns;
+    } else {
+      return [...UserPageConfig.userListPageColumns, {
+        name: "edit",
+        label: "Edit",
+        options: {
+          filter: false,
+          sort: false,
+          customBodyRenderLite: (dataIndex) => {
+            return (
+              <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadUser(rows[dataIndex].id) }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
+            );
+          }
+        }
+      }]
+    }
+  })
 
   const options = {
     filterType: 'dropdown',

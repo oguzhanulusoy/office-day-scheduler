@@ -15,6 +15,7 @@ import { hasPermission } from "utils/generalUtils";
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import zonePageConfig from 'configs/zonePageConfig';
+import { useMemo } from "react";
 
 function ZonePage() {
   const navigate = useNavigate();
@@ -195,17 +196,25 @@ function ZonePage() {
       }
     });
 
-  
-  let columns = zonePageConfig.zonePageColumns;
-  if (sessionStorage.getItem('userRole') !== 'SUPER_USER' ) {
-    columns[columns.length - 1].options.display = false;
-  } else {
-    columns[columns.length - 1].options.customBodyRenderLite = (dataIndex) => {
-      return (
-        <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadZone(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
-      );
+  const columns = useMemo(() => {
+    if (sessionStorage.getItem('userRole') !== 'SUPER_USER' ) {
+      return zonePageConfig.zonePageColumns;
+    } else {
+      return [...zonePageConfig.zonePageColumns, {
+        name: "edit",
+        label: "Edit",
+        options: {
+          filter: false,
+          sort: false,
+          customBodyRenderLite: (dataIndex) => {
+            return (
+              <Button aria-label="edit" onClick={() => { handleUpdateOpen(); loadZone(rows[dataIndex].id); setToUpdate(rows[dataIndex].id); }}><EditIcon style={{ color: "#9e9e9e" }}></EditIcon></Button>
+            );
+          }
+        }
+      }]
     }
-  }
+  })
 
   const getZoneData = () => {
     let serviceCaller = new ServiceCaller();

@@ -92,5 +92,5 @@
         "prettier": "^2.7.1",
         "sass": "^1.53.0"
     },
-    "proxy": "http://backend:8090"
+    "proxy": "http://localhost:8090"
 }

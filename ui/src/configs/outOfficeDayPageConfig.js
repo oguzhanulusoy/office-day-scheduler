@@ -30,19 +30,6 @@ export default {
                 filter: true,
                 sort: true
             }
-        },
-        {
-            name: "edit",
-            label: "Edit",
-            options: {
-                filter: false,
-                sort: false,
-                customBodyRenderLite: (dataIndex) => {
-                    return (
-                        <Button aria-label="edit"><EditIcon style={{color:"#9e9e9e"}}></EditIcon></Button>
-                    );
-                }
-            }
         }
     ]
 }

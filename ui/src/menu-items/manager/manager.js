@@ -36,6 +36,14 @@ const manager = {
             breadcrumbs: false
         },
         {
+            id: 'role',
+            title: 'Role List',
+            type: 'item',
+            url: '/admin/role',
+            icon: icons.KeyboardArrowRightIcon,
+            breadcrumbs: false
+        },
+        {
             id: 'schedule',
             title: 'Schedule List',
             type: 'item',

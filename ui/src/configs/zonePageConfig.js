@@ -59,14 +59,6 @@ export default {
                 filter: true,
                 sort: true
             }
-        },
-        {
-            name: "edit",
-            label: "Edit",
-            options: {
-                filter: false,
-                sort: false,
-            }
         }
     ]
 }
