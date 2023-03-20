@@ -12,7 +12,7 @@ function OutlinedCard({ user, outOfOfficeDayList, userScheduleList }) {
               <strong>Name:</strong> {user.firstName}
             </Typography>
             <Typography style={{ fontSize: 15 }} variant="body2">
-              <strong>Surname:</strong> {user.firstName}
+              <strong>Surname:</strong> {user.lastName}
             </Typography>
             <Typography style={{ fontSize: 15 }} variant="body2">
               <strong>Registration Number:</strong> {user.registrationNumber}
